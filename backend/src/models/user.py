@@ -1,6 +1,5 @@
 from sqlalchemy import Boolean, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
-
 from src.models.base import BaseWithTimestamps
 from src.models.enums import UserGender, UserRole, UserTimezone
 

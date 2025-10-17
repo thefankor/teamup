@@ -3,11 +3,10 @@ from contextlib import asynccontextmanager
 import redis.asyncio as redis
 import uvicorn
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
-
 from src.api import router
 from src.config import settings
 from src.core.db.redis_cache import RedisCache, redis_cache, set_cache
+from starlette.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager

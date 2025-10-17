@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List, Optional
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, HttpUrl, Field, constr, validator, field_validator
+
+from pydantic import BaseModel, EmailStr, Field, HttpUrl, constr, field_validator
 
 
 class SocialPlatform(str, Enum):

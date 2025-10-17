@@ -1,6 +1,5 @@
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-
 from src.core.wrapper import handle_db_errors
 from src.crud.impl.base import BaseDAO
 from src.models import User

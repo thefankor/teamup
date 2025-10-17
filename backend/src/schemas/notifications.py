@@ -1,14 +1,15 @@
-from pydantic import BaseModel, HttpUrl
+from datetime import datetime
 from enum import Enum
 from uuid import UUID
-from datetime import datetime
+
+from pydantic import BaseModel, HttpUrl
 
 
 class NotificationType(str, Enum):
     app_approved = "app_approved"
     app_rejected = "app_rejected"
     app_received = "app_received"
-    member_added  = "member_added"
+    member_added = "member_added"
     project_status = "project_status"
     system = "system"
 

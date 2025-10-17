@@ -1,13 +1,15 @@
-from pydantic import BaseModel, HttpUrl
-from uuid import UUID
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from uuid import UUID
+
+from pydantic import BaseModel, HttpUrl
 
 
 class ProjectStatus(str, Enum):
     open = "open"
     closed = "closed"
     draft = "draft"
+
 
 class Level(str, Enum):
     junior = "junior"
@@ -119,9 +121,11 @@ class ApplicationCreate(BaseModel):
     position_ids: list[UUID]
     message: str | None = None
 
+
 class ApplicationDecision(BaseModel):
     approve: bool
     note: str | None = None
+
 
 class ApplicationsPage(BaseModel):
     items: list[Application]

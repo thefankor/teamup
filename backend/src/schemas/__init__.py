@@ -1,4 +1,4 @@
-from src.schemas.auth import AuthResponse, LoginRequest, VerifyCodeRequest, EmptyModel
+from src.schemas.auth import AuthResponse, EmptyModel, LoginRequest, VerifyCodeRequest
 
 __all__ = [
     "LoginRequest",
