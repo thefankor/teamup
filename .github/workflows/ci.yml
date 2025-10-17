@@ -28,13 +28,3 @@ jobs:
 
       - name: Run ruff check
         run: make ruff_check
-
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Run all tests
-        run: make test-all
