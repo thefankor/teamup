@@ -42,7 +42,7 @@ class AuthService:
     async def send_confirm_code(self, email: str):
         code = self.generate_code()
         await self._sms_service.save(email=email, code=code)
-        send_code_task.delay(email=email, code=str(code))
+        send_code_task.delay(to_email=email, code=str(code))
 
     async def verify_code(self, email: str, code: str) -> AuthResponse:
         is_success_code = await self._sms_service.verify(

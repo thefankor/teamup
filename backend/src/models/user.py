@@ -1,21 +1,43 @@
-from sqlalchemy import Boolean, Enum, Integer, String
+import uuid
+
+from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from src.models.base import BaseWithTimestamps
-from src.models.enums import UserGender, UserRole, UserTimezone
 
 
 class User(BaseWithTimestamps):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
-    phone: Mapped[str | None] = mapped_column(String, unique=True, index=True)
+    phone: Mapped[str | None]
 
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.CLIENT)
-    name: Mapped[str | None] = mapped_column(String)
-    age: Mapped[int | None] = mapped_column(Integer)
-    gender: Mapped[UserGender | None] = mapped_column(Enum(UserGender))
+    first_name: Mapped[str | None]
+    last_name: Mapped[str | None]
+    middle_name: Mapped[str | None]
+    avatar_url: Mapped[str | None]
+    position: Mapped[str | None]
+    about: Mapped[str | None]
+    looking_for_projects: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true"
+    )
+    tags: Mapped[list[str]] = mapped_column(JSONB, default=[], server_default="[]")
+    skills: Mapped[list[str]] = mapped_column(JSONB, default=[], server_default="[]")
 
-    notifications: Mapped[bool] = mapped_column(Boolean, default=True)
-    timezone: Mapped[UserTimezone | None]
-    avatar: Mapped[str | None]
+    github_username: Mapped[str | None]
+    vk_username: Mapped[str | None]
+    tg_username: Mapped[str | None]
+    whatsapp_username: Mapped[str | None]
+
+
+class UserEducation(BaseWithTimestamps):
+    __tablename__ = "users_education"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+
+    university: Mapped[str]
+    specialty: Mapped[str]
+    degree: Mapped[str]
+    graduation_year: Mapped[int]

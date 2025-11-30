@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -34,6 +35,17 @@ async def get_current_user(
     )
 
 
+async def get_current_user_id(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    store: Store = Depends(get_store),
+) -> UUID:
+    return await _get_current_entity(
+        credentials=credentials,
+        expected_type="CLIENT",
+        store=store,
+    )
+
+
 async def check_token(
     token_type: Literal["CLIENT"],
     credentials: HTTPAuthorizationCredentials,
@@ -51,7 +63,7 @@ async def _get_current_entity(
     credentials: HTTPAuthorizationCredentials,
     expected_type: Literal["CLIENT"],
     store: Store,
-) -> User:
+) -> UUID:
     """Проверка токена и извлечение пользователя или креатора."""
 
     if credentials is None or not credentials.scheme.lower() == "bearer":
@@ -86,14 +98,12 @@ async def _get_current_entity(
         if not identity_value:
             raise credentials_exception
 
-        user = await store.user.find_one_or_none(
-            id=int(identity_value), role=payload.get("type")
-        )
+        user = await store.user.check_exist(model_id=UUID(identity_value))
 
         if not user:
             raise credentials_exception
 
-        return user
+        return UUID(identity_value)
 
     except HTTPException:
         raise
