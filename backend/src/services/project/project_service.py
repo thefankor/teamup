@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from fastapi import Depends
-
 from src.core.dependencies import get_store
 from src.core.exceptions import NotFoundException
 from src.crud import Store
@@ -11,17 +10,21 @@ from src.schemas.project import (
     Application,
     ApplicationCreate,
     ApplicationDecision,
-    ApplicationStatus,
     ApplicationsPage,
+    ApplicationStatus,
     Level,
-    Project as ProjectSchema,
     ProjectCard,
     ProjectCreate,
     ProjectMember,
-    ProjectPosition as ProjectPositionSchema,
     ProjectsPage,
     ProjectStatus,
     ProjectUpdate,
+)
+from src.schemas.project import (
+    Project as ProjectSchema,
+)
+from src.schemas.project import (
+    ProjectPosition as ProjectPositionSchema,
 )
 
 
@@ -48,7 +51,9 @@ class ProjectService:
         """Конвертирует ProjectStatus в is_open."""
         return status == ProjectStatus.open
 
-    def _model_app_status_to_schema(self, status: ModelApplicationStatus) -> ApplicationStatus:
+    def _model_app_status_to_schema(
+        self, status: ModelApplicationStatus
+    ) -> ApplicationStatus:
         """Конвертирует статус заявки из модели в схему."""
         mapping = {
             ModelApplicationStatus.PENDING: ApplicationStatus.pending,
@@ -57,7 +62,9 @@ class ProjectService:
         }
         return mapping.get(status, ApplicationStatus.pending)
 
-    def _schema_app_status_to_model(self, status: ApplicationStatus) -> ModelApplicationStatus:
+    def _schema_app_status_to_model(
+        self, status: ApplicationStatus
+    ) -> ModelApplicationStatus:
         """Конвертирует статус заявки из схемы в модель."""
         mapping = {
             ApplicationStatus.pending: ModelApplicationStatus.PENDING,
@@ -88,10 +95,12 @@ class ProjectService:
             for pos in positions
         ]
 
-        participants = await self._store.project_participant.find_all(project_id=project.id)
+        participants = await self._store.project_participant.find_all(
+            project_id=project.id
+        )
         team_member_ids = set()
         team_members = []
-        
+
         for participant in participants:
             user = await self._store.user.find_by_id(model_id=participant.user_id)
             if user:
@@ -103,7 +112,7 @@ class ProjectService:
                 user_roles = [
                     pos.role for pos in positions if pos.id in user_position_ids
                 ]
-                
+
                 team_members.append(
                     ProjectMember(
                         user_id=user.id,
@@ -115,7 +124,7 @@ class ProjectService:
                         is_owner=user.id == project.owner_id,
                     )
                 )
-        
+
         if project.owner_id not in team_member_ids:
             owner = await self._store.user.find_by_id(model_id=project.owner_id)
             if owner:
@@ -202,9 +211,7 @@ class ProjectService:
 
         return ProjectsPage(items=items)
 
-    async def create_project(
-        self, user_id: UUID, data: ProjectCreate
-    ) -> ProjectSchema:
+    async def create_project(self, user_id: UUID, data: ProjectCreate) -> ProjectSchema:
         """Создает новый проект с позициями."""
         project = await self._store.project.add(
             title=data.title,
@@ -235,9 +242,13 @@ class ProjectService:
 
         update_data = data.model_dump(exclude_unset=True)
         if "status" in update_data:
-            update_data["is_open"] = self._schema_status_to_model(update_data.pop("status"))
+            update_data["is_open"] = self._schema_status_to_model(
+                update_data.pop("status")
+            )
 
-        await self._store.project.update(model_id=project_id, return_model=False, **update_data)
+        await self._store.project.update(
+            model_id=project_id, return_model=False, **update_data
+        )
 
         updated_project = await self._get_project_with_relations(project_id)
         return await self._build_project_schema(updated_project)
@@ -272,7 +283,6 @@ class ProjectService:
         self, project_id: UUID, user_id: UUID, data: ApplicationCreate
     ) -> Application:
         """Подает заявку на проект для указанных позиций."""
-        project = await self._get_project_with_relations(project_id)
 
         applications = []
         for position_id in data.position_ids:
@@ -368,8 +378,12 @@ class ProjectService:
                     message=app.message,
                     status=self._model_app_status_to_schema(app.status),
                     created_at=app.created_at,
-                    decided_at=app.updated_at if app.status != ModelApplicationStatus.PENDING else None,
-                    decided_by=project.owner_id if app.status != ModelApplicationStatus.PENDING else None,
+                    decided_at=app.updated_at
+                    if app.status != ModelApplicationStatus.PENDING
+                    else None,
+                    decided_by=project.owner_id
+                    if app.status != ModelApplicationStatus.PENDING
+                    else None,
                 )
             )
 
@@ -407,8 +421,10 @@ class ProjectService:
         )
 
         if data.approve:
-            existing_participant = await self._store.project_participant.find_one_or_none(
-                project_id=project_id, user_id=application.user_id
+            existing_participant = (
+                await self._store.project_participant.find_one_or_none(
+                    project_id=project_id, user_id=application.user_id
+                )
             )
             if not existing_participant:
                 position = await self._store.project_position.find_by_id(
@@ -436,4 +452,3 @@ class ProjectService:
             decided_at=updated_application.updated_at,
             decided_by=user_id,
         )
-

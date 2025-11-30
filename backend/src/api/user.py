@@ -11,9 +11,8 @@ from src.schemas.user import (
     TagsReplace,
     UserProfileResponse,
 )
-from starlette import status
-
 from src.services.user import UserService
+from starlette import status
 
 router = APIRouter(tags=["User"])
 
@@ -41,41 +40,41 @@ async def get_profile(
 
 @router.patch("", response_model=UserProfileResponse)
 async def update_core(
-        payload: ProfileCoreUpdate,
-        current_user_id=Depends(get_current_user_id),
-        service: UserService = Depends(),
+    payload: ProfileCoreUpdate,
+    current_user_id=Depends(get_current_user_id),
+    service: UserService = Depends(),
 ):
     return await service.update_profile(user_id=current_user_id, data=payload)
 
 
-@router.put("/avatar", response_model=UserProfileResponse, status_code=200) #TODO
+@router.put("/avatar", response_model=UserProfileResponse, status_code=200)  # TODO
 async def put_avatar(file: UploadFile = File(...), user=Depends(get_current_user_id)):
     pass
 
 
 @router.patch("/contacts", response_model=UserProfileResponse)
 async def put_contacts(
-        payload: ContactInfo,
-        current_user_id=Depends(get_current_user_id),
-        service: UserService = Depends(),
+    payload: ContactInfo,
+    current_user_id=Depends(get_current_user_id),
+    service: UserService = Depends(),
 ):
     return await service.update_profile(user_id=current_user_id, data=payload)
 
 
 @router.put("/skills", response_model=UserProfileResponse)
 async def put_skills(
-        payload: SkillsReplace,
-        current_user_id=Depends(get_current_user_id),
-        service: UserService = Depends(),
+    payload: SkillsReplace,
+    current_user_id=Depends(get_current_user_id),
+    service: UserService = Depends(),
 ):
     return await service.update_skills(user_id=current_user_id, skills=payload.skills)
 
 
 @router.put("/tags", response_model=UserProfileResponse)
 async def put_tags(
-        payload: TagsReplace,
-        current_user_id=Depends(get_current_user_id),
-        service: UserService = Depends(),
+    payload: TagsReplace,
+    current_user_id=Depends(get_current_user_id),
+    service: UserService = Depends(),
 ):
     return await service.update_tags(user_id=current_user_id, tags=payload.tags)
 

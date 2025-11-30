@@ -14,7 +14,7 @@ class ProjectDAO(BaseDAO):
         self, q: str | None = None, limit: int = 20, offset: int = 0
     ) -> list[Project]:
         """Находит открытые проекты с поиском по тексту."""
-        query = select(self.model).where(self.model.is_open == True)
+        query = select(self.model).where(self.model.is_open.is_(True))
 
         if q:
             query = query.where(

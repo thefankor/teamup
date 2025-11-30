@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from fastapi import Depends
-
 from src.core.dependencies import get_store
 from src.core.exceptions import NotFoundException
 from src.crud import Store
@@ -29,7 +28,10 @@ class UserService:
     - ReferralService для создания реферальных связей
     """
 
-    def __init__(self, store: Store = Depends(get_store),):
+    def __init__(
+        self,
+        store: Store = Depends(get_store),
+    ):
         """Инициализация сервиса пользователей.
 
         Args:
@@ -78,12 +80,20 @@ class UserService:
             projects=[],  # TODO
         )
 
-    async def update_profile(self, user_id: UUID, data: ProfileCoreUpdate | ContactInfo) -> UserProfileResponse:
-        await self._store.user.update(model_id=user_id, return_model=False, **data.model_dump(exclude_unset=True))
+    async def update_profile(
+        self, user_id: UUID, data: ProfileCoreUpdate | ContactInfo
+    ) -> UserProfileResponse:
+        await self._store.user.update(
+            model_id=user_id, return_model=False, **data.model_dump(exclude_unset=True)
+        )
         return await self.get_profile(user_id=user_id)
 
-    async def update_skills(self, user_id: UUID, skills: list[str]) -> UserProfileResponse:
-        await self._store.user.update(model_id=user_id, return_model=False, skills=skills)
+    async def update_skills(
+        self, user_id: UUID, skills: list[str]
+    ) -> UserProfileResponse:
+        await self._store.user.update(
+            model_id=user_id, return_model=False, skills=skills
+        )
         return await self.get_profile(user_id=user_id)
 
     async def update_tags(self, user_id: UUID, tags: list[str]) -> UserProfileResponse:

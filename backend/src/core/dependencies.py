@@ -34,6 +34,7 @@ async def get_current_user(
         store=store,
     )
 
+
 async def get_current_user_id(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     store: Store = Depends(get_store),
@@ -97,9 +98,7 @@ async def _get_current_entity(
         if not identity_value:
             raise credentials_exception
 
-        user = await store.user.check_exist(
-            model_id=UUID(identity_value)
-        )
+        user = await store.user.check_exist(model_id=UUID(identity_value))
 
         if not user:
             raise credentials_exception

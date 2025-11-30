@@ -93,6 +93,7 @@ class SkillsReplace(BaseModel):
             raise ValueError("Скиллы должны быть уникальными")
         return v
 
+
 class TagsReplace(BaseModel):
     tags: List[constr(strip_whitespace=True, min_length=1, max_length=32)]
 
