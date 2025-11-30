@@ -1,11 +1,23 @@
 from src.models.base import Base, BaseWithTimestamps
-from src.models.enums import UserGender, UserRole
-from src.models.user import User
+from src.models.enums import ApplicationStatus
+from src.models.notification import Notification
+from src.models.project import (
+    Project,
+    ProjectApplication,
+    ProjectParticipant,
+    ProjectPosition,
+)
+from src.models.user import User, UserEducation
 
 __all__ = [
     "BaseWithTimestamps",
     "Base",
     "User",
-    "UserGender",
-    "UserRole",
+    "UserEducation",
+    "ApplicationStatus",
+    "Notification",
+    "Project",
+    "ProjectPosition",
+    "ProjectApplication",
+    "ProjectParticipant",
 ]
