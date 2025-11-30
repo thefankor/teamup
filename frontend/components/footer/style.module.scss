@@ -1,0 +1,58 @@
+.footer {
+    padding: 40px;
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logoDots {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    width: 32px;
+    height: 32px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background-color: #3b82f6;
+    border-radius: 2px;
+}
+
+.logoText {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.copyright {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 30px 20px;
+    }
+
+    .container {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+}
+

@@ -1,0 +1,134 @@
+.notificationsPage {
+    min-height: 100vh;
+    background-color: #f9fafb;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 32px 0;
+}
+
+.notificationsList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.notificationCard {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+}
+
+.notificationContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notificationText {
+    font-size: 16px;
+    color: #1f2937;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.projectLink {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+
+    &:hover {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+}
+
+.notificationTime {
+    font-size: 14px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.notificationIcon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+.iconRead {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iconUnread {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .notificationsPage {
+        padding: 20px 0;
+    }
+
+    .container {
+        padding: 0 16px;
+    }
+
+    .title {
+        font-size: 24px;
+        margin-bottom: 24px;
+    }
+
+    .notificationCard {
+        padding: 16px 20px;
+    }
+
+    .notificationText {
+        font-size: 14px;
+    }
+}
+
