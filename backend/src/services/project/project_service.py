@@ -5,7 +5,7 @@ from fastapi import Depends
 from src.core.dependencies import get_store
 from src.core.exceptions import NotFoundException
 from src.crud import Store
-from src.models import Project, ProjectParticipant, ProjectPosition
+from src.models import Project
 from src.models.enums import ApplicationStatus as ModelApplicationStatus
 from src.schemas.project import (
     Application,
@@ -19,7 +19,6 @@ from src.schemas.project import (
     ProjectCreate,
     ProjectMember,
     ProjectPosition as ProjectPositionSchema,
-    ProjectPositionCreate,
     ProjectsPage,
     ProjectStatus,
     ProjectUpdate,

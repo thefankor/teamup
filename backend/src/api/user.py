@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from src.core.dependencies import get_current_user_id
 from src.schemas.user import (
     ContactInfo,
-    ContactsUpdate,
     EducationCreate,
     EducationUpdate,
     ProfileCoreUpdate,

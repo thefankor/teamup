@@ -12,7 +12,6 @@ from src.schemas.user import (
     EducationCreate,
     EducationUpdate,
     ProfileCoreUpdate,
-    SkillsReplace,
     UserProfileResponse,
 )
 
