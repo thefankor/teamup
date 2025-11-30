@@ -86,7 +86,6 @@ class ProjectUpdate(BaseModel):
 
 class ProjectsPage(BaseModel):
     items: list[ProjectCard]
-    next_cursor: str | None = None
 
 
 class ProjectFilters(BaseModel):
@@ -129,4 +128,3 @@ class ApplicationDecision(BaseModel):
 
 class ApplicationsPage(BaseModel):
     items: list[Application]
-    next_cursor: str | None = None

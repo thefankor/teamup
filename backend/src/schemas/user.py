@@ -20,9 +20,12 @@ class SocialLink(BaseModel):
 
 
 class ContactInfo(BaseModel):
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
-    socials: List[SocialLink] = []
+    phone: str | None = None
+    email: EmailStr | None = None
+    github_username: str | None = None
+    vk_username: str | None = None
+    tg_username: str | None = None
+    whatsapp_username: str | None = None
 
 
 class Skill(BaseModel):
@@ -53,15 +56,15 @@ class Project(BaseModel):
 
 class UserProfileResponse(BaseModel):
     id: UUID
-    first_name: str
-    last_name: str
+    first_name: str | None = None
+    last_name: str | None = None
     middle_name: Optional[str] = None
     avatar_url: Optional[HttpUrl] = None
     position: Optional[str] = None
     about: Optional[str] = None
     looking_for_projects: bool = False
     tags: List[str]
-    skills: List[Skill]
+    skills: List[str]
     contact_info: ContactInfo
     education: List[Education]
     projects: List[Project]
@@ -81,15 +84,14 @@ class ContactsUpdate(ContactInfo):
 
 
 class SkillsReplace(BaseModel):
-    skills: List[Skill]
+    skills: list[str]
 
     @field_validator("skills")
-    def unique_skills(cls, v):
-        names = [s.name.lower() for s in v]
-        if len(names) != len(set(names)):
-            raise ValueError("Навыки должны быть уникальными")
+    def unique_tags(cls, v):
+        low = [t.lower() for t in v]
+        if len(low) != len(set(low)):
+            raise ValueError("Скиллы должны быть уникальными")
         return v
-
 
 class TagsReplace(BaseModel):
     tags: List[constr(strip_whitespace=True, min_length=1, max_length=32)]

@@ -58,6 +58,24 @@ class BaseDAO:
         return True
 
     @handle_db_errors
+    async def check_exist(self, model_id: int | UUID):
+        """Проверяет существование записи по ID и возвращает True или False
+
+        Используется для валидации существования записей перед
+        выполнением операций обновления или удаления.
+
+        Args:
+            model_id (int | UUID): Идентификатор записи для проверки.
+
+        Returns:
+            bool: True, если запись существует, иначе False
+        """
+        stmt = select(self.model.id).where(self.model.id == model_id)
+        result = await self.session.execute(stmt)
+        instance = result.scalar_one_or_none()
+        return True if instance else False
+
+    @handle_db_errors
     async def find_one_or_none(self, **filter_by):
         """Находит одну запись по указанным фильтрам.
 

@@ -1,9 +1,9 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, UploadFile
-from src.core.dependencies import get_current_user
-from src.models import User
+from src.core.dependencies import get_current_user_id
 from src.schemas.user import (
+    ContactInfo,
     ContactsUpdate,
     EducationCreate,
     EducationUpdate,
@@ -13,6 +13,8 @@ from src.schemas.user import (
     UserProfileResponse,
 )
 from starlette import status
+
+from src.services.user import UserService
 
 router = APIRouter(tags=["User"])
 
@@ -32,34 +34,51 @@ router = APIRouter(tags=["User"])
     },
 )
 async def get_profile(
-    current_user: User = Depends(get_current_user),
+    current_user_id: UUID = Depends(get_current_user_id),
+    service: UserService = Depends(),
 ):
-    return None
+    return await service.get_profile(user_id=current_user_id)
 
 
 @router.patch("", response_model=UserProfileResponse)
-async def update_core(payload: ProfileCoreUpdate, user=Depends(get_current_user)):
+async def update_core(
+        payload: ProfileCoreUpdate,
+        current_user_id=Depends(get_current_user_id),
+        service: UserService = Depends(),
+):
+    return await service.update_profile(user_id=current_user_id, data=payload)
+
+
+@router.put("/avatar", response_model=UserProfileResponse, status_code=200) #TODO
+async def put_avatar(file: UploadFile = File(...), user=Depends(get_current_user_id)):
     pass
 
 
-@router.put("/avatar", response_model=UserProfileResponse, status_code=200)
-async def put_avatar(file: UploadFile = File(...), user=Depends(get_current_user)):
-    pass
-
-
-@router.put("/contacts", response_model=UserProfileResponse)
-async def put_contacts(payload: ContactsUpdate, user=Depends(get_current_user)):
-    pass
+@router.patch("/contacts", response_model=UserProfileResponse)
+async def put_contacts(
+        payload: ContactInfo,
+        current_user_id=Depends(get_current_user_id),
+        service: UserService = Depends(),
+):
+    return await service.update_profile(user_id=current_user_id, data=payload)
 
 
 @router.put("/skills", response_model=UserProfileResponse)
-async def put_skills(payload: SkillsReplace, user=Depends(get_current_user)):
-    pass
+async def put_skills(
+        payload: SkillsReplace,
+        current_user_id=Depends(get_current_user_id),
+        service: UserService = Depends(),
+):
+    return await service.update_skills(user_id=current_user_id, skills=payload.skills)
 
 
 @router.put("/tags", response_model=UserProfileResponse)
-async def put_tags(payload: TagsReplace, user=Depends(get_current_user)):
-    pass
+async def put_tags(
+        payload: TagsReplace,
+        current_user_id=Depends(get_current_user_id),
+        service: UserService = Depends(),
+):
+    return await service.update_tags(user_id=current_user_id, tags=payload.tags)
 
 
 @router.post(
@@ -67,15 +86,24 @@ async def put_tags(payload: TagsReplace, user=Depends(get_current_user)):
     response_model=UserProfileResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def add_education(payload: EducationCreate, user=Depends(get_current_user)):
-    pass
+async def add_education(
+    payload: EducationCreate,
+    current_user_id: UUID = Depends(get_current_user_id),
+    service: UserService = Depends(),
+):
+    return await service.add_education(user_id=current_user_id, data=payload)
 
 
 @router.patch("/education/{edu_id}", response_model=UserProfileResponse)
 async def patch_education(
-    edu_id: UUID, payload: EducationUpdate, user=Depends(get_current_user)
+    edu_id: UUID,
+    payload: EducationUpdate,
+    current_user_id: UUID = Depends(get_current_user_id),
+    service: UserService = Depends(),
 ):
-    pass
+    return await service.update_education(
+        user_id=current_user_id, edu_id=edu_id, data=payload
+    )
 
 
 @router.delete(
@@ -83,5 +111,9 @@ async def patch_education(
     response_model=UserProfileResponse,
     status_code=status.HTTP_200_OK,
 )
-async def delete_education(edu_id: UUID, user_id=Depends(get_current_user)):
-    pass
+async def delete_education(
+    edu_id: UUID,
+    current_user_id: UUID = Depends(get_current_user_id),
+    service: UserService = Depends(),
+):
+    return await service.delete_education(user_id=current_user_id, edu_id=edu_id)
