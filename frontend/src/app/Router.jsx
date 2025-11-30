@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Layout } from '../components/layout/Layout'
 import App from '../pages/ui/App'
 import Notifications from '../pages/ui/Notifications'
 import Profile from '../pages/ui/Profile'
@@ -13,16 +14,15 @@ export function Router() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<App />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/project/:id" element={<Project />} />
-                <Route path="/project/:id/responses" element={<Responses />} />
                 <Route path="/login" element={<Auth />} />
-                <Route path="/my_projects" element={<MyProjects />} />
-                <Route path="/create_project" element={<AddProject />} />
-                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/" element={<Layout><App /></Layout>} />
+                <Route path="/search" element={<Layout><Search /></Layout>} />
+                <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
+                <Route path="/profile" element={<Layout><Profile /></Layout>} />
+                <Route path="/project/:id" element={<Layout><Project /></Layout>} />
+                <Route path="/project/:id/responses" element={<Layout><Responses /></Layout>} />
+                <Route path="/my_projects" element={<Layout><MyProjects /></Layout>} />
+                <Route path="/create_project" element={<Layout><AddProject /></Layout>} />
             </Routes>
         </BrowserRouter>
     )

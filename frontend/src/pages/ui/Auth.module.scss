@@ -1,0 +1,123 @@
+.authPage {
+    min-height: 100vh;
+    background-color: #ffffff;
+}
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.formWrapper {
+    width: 100%;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 40px 0;
+    text-align: center;
+}
+
+.description {
+    font-size: 14px;
+    color: #6b7280;
+    text-align: center;
+    margin: 0 0 32px 0;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: -16px;
+}
+
+.input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 16px;
+    color: #1f2937;
+    background-color: #f9fafb;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    box-sizing: border-box;
+
+    &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    &::placeholder {
+        color: #9ca3af;
+    }
+}
+
+.submitButton {
+    width: 100%;
+    padding: 16px 20px;
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    box-sizing: border-box;
+
+    &:hover {
+        background-color: #2563eb;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+.resendText {
+    font-size: 14px;
+    color: #6b7280;
+    text-align: center;
+    margin: -16px 0 0 0;
+}
+
+.resendButton {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    font-family: 'DM Sans', sans-serif;
+
+    &:hover {
+        color: #2563eb;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 40px 20px;
+    }
+
+    .title {
+        font-size: 28px;
+        margin-bottom: 32px;
+    }
+}
+
