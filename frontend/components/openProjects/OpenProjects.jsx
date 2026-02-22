@@ -1,46 +1,55 @@
 import { useState, useEffect } from 'react';
 import { ProjectCard } from '../projectCard/ProjectCard';
+import { projectsAPI } from '../../src/services/api';
 import style from './style.module.scss';
 
 export const OpenProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+
+    const loadProjects = async (reset = false) => {
+        try {
+            setLoading(true);
+            setError('');
+            const currentOffset = reset ? 0 : offset;
+            
+            const response = await projectsAPI.list({
+                limit: 20,
+                offset: currentOffset,
+            });
+            const newProjects = response.items || [];
+
+            if (reset) {
+                setProjects(newProjects);
+                setOffset(20);
+            } else {
+                setProjects(prev => [...prev, ...newProjects]);
+                setOffset(prev => prev + 20);
+            }
+
+            setHasMore(newProjects.length === 20);
+        } catch (err) {
+            setError(err.message || 'Ошибка загрузки проектов');
+            console.error('Error loading projects:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        // TODO: Заменить на реальный API запрос
-        // Пока используем моковые данные
-        const mockProjects = [
-            {
-                id: '1',
-                title: 'Mobile app project',
-                description: 'Lorem ipsum dolor sit amet consecte tur adipiscing elit semper dalaracc lacus vel facilisis volutpat est velitolm.',
-                tags: ['Front-end', 'Back-end', 'Designer', 'ML-developer'],
-                created_at: '2025-09-19T17:55:00Z'
-            },
-            {
-                id: '2',
-                title: 'E-commerce platform',
-                description: 'Разработка современной платформы для электронной коммерции с использованием React и Node.js.',
-                tags: ['Front-end', 'Back-end'],
-                created_at: '2025-09-18T14:30:00Z'
-            },
-            {
-                id: '3',
-                title: 'AI Chatbot',
-                description: 'Создание интеллектуального чат-бота с использованием машинного обучения и NLP технологий.',
-                tags: ['ML-developer', 'Back-end'],
-                created_at: '2025-09-17T10:15:00Z'
-            }
-        ];
-
-        // Имитация загрузки данных
-        setTimeout(() => {
-            setProjects(mockProjects);
-            setLoading(false);
-        }, 500);
+        loadProjects(true);
     }, []);
 
-    if (loading) {
+    const handleLoadMore = () => {
+        if (!loading && hasMore) {
+            loadProjects(false);
+        }
+    };
+
+    if (loading && projects.length === 0) {
         return (
             <section className={style.section}>
                 <div className={style.container}>
@@ -51,25 +60,27 @@ export const OpenProjects = () => {
         );
     }
 
-    const handleLoadMore = () => {
-        // TODO: Загрузить больше проектов с API
-        console.log('Загрузить еще проектов');
-    };
-
     return (
         <section className={style.section}>
             <div className={style.container}>
                 <h2 className={style.title}>Открытые проекты</h2>
+                {error && <div className={style.error}>{error}</div>}
                 <div className={style.list}>
                     {projects.map((project) => (
                         <ProjectCard key={project.id} project={project} />
                     ))}
                 </div>
-                <div className={style.loadMoreContainer}>
-                    <button className={style.loadMoreButton} onClick={handleLoadMore}>
-                        Загрузить еще
-                    </button>
-                </div>
+                {projects.length > 0 && hasMore && (
+                    <div className={style.loadMoreContainer}>
+                        <button 
+                            className={style.loadMoreButton} 
+                            onClick={handleLoadMore}
+                            disabled={loading}
+                        >
+                            {loading ? 'Загрузка...' : 'Загрузить еще'}
+                        </button>
+                    </div>
+                )}
             </div>
         </section>
     );

@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ProjectCard } from '../../../components/projectCard/ProjectCard';
+import { projectsAPI } from '../../services/api';
 import style from './Search.module.scss';
 
 export default function Search() {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
-    
+
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [selectedLevel, setSelectedLevel] = useState(null);
     const [showPositionDropdown, setShowPositionDropdown] = useState(false);
@@ -17,52 +21,48 @@ export default function Search() {
     const positions = ['Front-end', 'Back-end', 'Designer', 'ML-developer'];
     const levels = ['JUNIOR', 'MIDDLE', 'SENIOR'];
 
-    useEffect(() => {
-        // TODO: Заменить на реальный API запрос с фильтрами
-        // Пока используем моковые данные
-        const mockProjects = [
-            {
-                id: '1',
-                title: 'Mobile app project',
-                description: 'Lorem ipsum dolor sit amet consecte tur adipiscing elit semper dalaracc lacus vel facilisis volutpat est velitolm.',
-                tags: ['Front-end', 'Back-end', 'Designer', 'ML-developer'],
-                created_at: '2025-09-19T17:55:00Z'
-            },
-            {
-                id: '2',
-                title: 'Mobile e-commerce platform',
-                description: 'Разработка современной платформы для электронной коммерции с использованием React и Node.js.',
-                tags: ['Front-end', 'Back-end'],
-                created_at: '2025-09-18T14:30:00Z'
-            },
-            {
-                id: '3',
-                title: 'Mobile AI Chatbot',
-                description: 'Создание интеллектуального чат-бота с использованием машинного обучения и NLP технологий.',
-                tags: ['ML-developer', 'Back-end'],
-                created_at: '2025-09-17T10:15:00Z'
-            }
-        ];
+    const loadProjects = async (reset = false) => {
+        try {
+            setLoading(true);
+            setError('');
+            const currentOffset = reset ? 0 : offset;
 
-        // Имитация загрузки данных
-        setLoading(true);
-        setTimeout(() => {
-            // Фильтруем по запросу (если есть)
-            const filtered = query 
-                ? mockProjects.filter(p => 
-                    p.title.toLowerCase().includes(query.toLowerCase()) ||
-                    p.description.toLowerCase().includes(query.toLowerCase())
-                )
-                : mockProjects;
-            
-            setProjects(filtered);
+            const params = {
+                q: query || undefined,
+                role: selectedPosition || undefined,
+                level: selectedLevel || undefined,
+                limit: 20,
+                offset: currentOffset,
+            };
+
+            const response = await projectsAPI.list(params);
+            const newProjects = response.items || [];
+
+            if (reset) {
+                setProjects(newProjects);
+                setOffset(20);
+            } else {
+                setProjects(prev => [...prev, ...newProjects]);
+                setOffset(prev => prev + 20);
+            }
+
+            setHasMore(newProjects.length === 20);
+        } catch (err) {
+            setError(err.message || 'Ошибка загрузки проектов');
+            console.error('Error loading projects:', err);
+        } finally {
             setLoading(false);
-        }, 500);
+        }
+    };
+
+    useEffect(() => {
+        loadProjects(true);
     }, [query, selectedPosition, selectedLevel]);
 
     const handleLoadMore = () => {
-        // TODO: Загрузить больше проектов с API
-        console.log('Загрузить еще проектов');
+        if (!loading && hasMore) {
+            loadProjects(false);
+        }
     };
 
     return (
@@ -78,15 +78,15 @@ export default function Search() {
                     <div className={style.filters}>
                         <div className={style.filterWrapper}>
                             <button
-                                className={style.filterButton}
+                                className={`${style.filterButton} ${selectedPosition ? style.filterButtonActive : ''}`}
                                 onClick={() => {
                                     setShowPositionDropdown(!showPositionDropdown);
                                     setShowLevelDropdown(false);
                                 }}
                             >
-                                Позиция
+                                Позиция{selectedPosition && `: ${selectedPosition}`}
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </button>
                             {showPositionDropdown && (
@@ -118,15 +118,15 @@ export default function Search() {
 
                         <div className={style.filterWrapper}>
                             <button
-                                className={style.filterButton}
+                                className={`${style.filterButton} ${selectedLevel ? style.filterButtonActive : ''}`}
                                 onClick={() => {
                                     setShowLevelDropdown(!showLevelDropdown);
                                     setShowPositionDropdown(false);
                                 }}
                             >
-                                Уровень
+                                Уровень{selectedLevel && `: ${selectedLevel}`}
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </button>
                             {showLevelDropdown && (
@@ -156,10 +156,42 @@ export default function Search() {
                             )}
                         </div>
                     </div>
+
+                    {/* Активные фильтры */}
+                    {(selectedPosition || selectedLevel) && (
+                        <div className={style.activeFilters}>
+                            <span className={style.activeFiltersLabel}>Активные фильтры:</span>
+                            {selectedPosition && (
+                                <span className={style.activeFilterTag}>
+                                    Позиция: {selectedPosition}
+                                    <button
+                                        className={style.removeFilterButton}
+                                        onClick={() => setSelectedPosition(null)}
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            )}
+                            {selectedLevel && (
+                                <span className={style.activeFilterTag}>
+                                    Уровень: {selectedLevel}
+                                    <button
+                                        className={style.removeFilterButton}
+                                        onClick={() => setSelectedLevel(null)}
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Список проектов */}
-                {loading ? (
+                {error && (
+                    <div className={style.error}>{error}</div>
+                )}
+                {loading && projects.length === 0 ? (
                     <div className={style.loading}>Загрузка...</div>
                 ) : (
                     <>
@@ -168,14 +200,18 @@ export default function Search() {
                                 <ProjectCard key={project.id} project={project} />
                             ))}
                         </div>
-                        {projects.length > 0 && (
+                        {projects.length > 0 && hasMore && (
                             <div className={style.loadMoreContainer}>
-                                <button className={style.loadMoreButton} onClick={handleLoadMore}>
-                                    Загрузить еще
+                                <button
+                                    className={style.loadMoreButton}
+                                    onClick={handleLoadMore}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Загрузка...' : 'Загрузить еще'}
                                 </button>
                             </div>
                         )}
-                        {projects.length === 0 && (
+                        {projects.length === 0 && !loading && (
                             <div className={style.emptyState}>
                                 <p>Проекты не найдены</p>
                             </div>

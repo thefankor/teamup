@@ -27,7 +27,7 @@ export const ProjectCard = ({ project }) => {
         <div className={style.card}>
             <div className={style.content}>
                 <h3 className={style.title}>{project.title}</h3>
-                <p className={style.description}>{project.description}</p>
+                <p className={style.description}>{project.excerpt || project.description || ''}</p>
                 
                 <div className={style.tags}>
                     {project.tags?.map((tag, index) => (

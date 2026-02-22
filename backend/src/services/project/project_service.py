@@ -156,12 +156,14 @@ class ProjectService:
     async def list_open_projects(
         self,
         q: str | None = None,
+        role: str | None = None,
+        level: str | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> ProjectsPage:
         """Получает список открытых проектов с фильтрацией."""
         projects = await self._store.project.find_open_projects(
-            q=q, limit=limit, offset=offset
+            q=q, role=role, level=level, limit=limit, offset=offset
         )
 
         items = [
@@ -207,6 +209,54 @@ class ProjectService:
                 created_at=project.created_at,
             )
             for project in projects
+        ]
+
+        return ProjectsPage(items=items)
+
+    async def participating_projects(
+        self,
+        user_id: UUID,
+        status: ProjectStatus | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> ProjectsPage:
+        """Получает проекты, где пользователь является участником (но не владельцем)."""
+        is_open = None
+        if status:
+            is_open = self._schema_status_to_model(status)
+
+        # Находим все участия пользователя
+        participants = await self._store.project_participant.find_projects_by_user(
+            user_id=user_id
+        )
+
+        # Получаем ID проектов
+        project_ids = [p.project_id for p in participants]
+
+        if not project_ids:
+            return ProjectsPage(items=[])
+
+        # Загружаем проекты по ID
+        projects = []
+        for project_id in project_ids:
+            project = await self._store.project.find_by_id(model_id=project_id)
+            if project and project.owner_id != user_id:
+                if is_open is None or project.is_open == is_open:
+                    projects.append(project)
+
+        # Сортируем и применяем пагинацию
+        projects.sort(key=lambda p: p.created_at, reverse=True)
+        paginated_projects = projects[offset : offset + limit]
+
+        items = [
+            ProjectCard(
+                id=project.id,
+                title=project.title,
+                excerpt=project.description[:200] if project.description else None,
+                tags=project.tags,
+                created_at=project.created_at,
+            )
+            for project in paginated_projects
         ]
 
         return ProjectsPage(items=items)

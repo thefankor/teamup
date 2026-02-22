@@ -79,13 +79,29 @@
     font-family: 'DM Sans', sans-serif;
     box-sizing: border-box;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: #2563eb;
     }
 
-    &:active {
+    &:active:not(:disabled) {
         transform: scale(0.98);
     }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.error {
+    padding: 12px 16px;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 16px;
 }
 
 .resendText {
