@@ -1,7 +1,7 @@
-from typing import Callable, Literal
+from typing import Callable
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.auth import TokenService
@@ -19,11 +19,10 @@ def get_store(session: AsyncSession = Depends(get_async_db)) -> Store:
 
 
 async def check_token_dependency(
-    token_type: Literal["CLIENT"] = Query(...),
     credentials=Depends(bearer_scheme),
     store: Store = Depends(get_store),
 ):
-    await check_token(token_type=token_type, credentials=credentials, store=store)
+    await check_token(credentials=credentials, store=store)
 
 
 async def get_current_user_id(
@@ -32,9 +31,17 @@ async def get_current_user_id(
 ) -> UUID:
     return await _get_current_entity(
         credentials=credentials,
-        expected_type="CLIENT",
         store=store,
     )
+
+
+async def get_current_sid(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+) -> UUID:
+    token = credentials.credentials.replace("Bearer ", "")
+    payload = TokenService.get_token_payload(token)
+
+    return UUID(payload.get("sid"))
 
 
 async def get_current_user_entity(
@@ -78,13 +85,11 @@ async def get_current_user(
 
 
 async def check_token(
-    token_type: Literal["CLIENT"],
     credentials: HTTPAuthorizationCredentials,
     store: Store,
 ) -> bool:
     return await _get_current_entity(
         credentials=credentials,
-        expected_type=token_type,
         store=store,
     )
 
@@ -92,7 +97,6 @@ async def check_token(
 async def _get_current_entity(
     *,
     credentials: HTTPAuthorizationCredentials,
-    expected_type: Literal["CLIENT"],
     store: Store,
 ) -> UUID:
     """Проверка токена и извлечение пользователя или креатора."""
@@ -122,19 +126,18 @@ async def _get_current_entity(
     try:
         payload = TokenService.get_token_payload(token)
 
-        if payload.get("type") != expected_type:
-            raise credentials_exception
-
-        identity_value = payload.get("sub")
+        identity_value = payload.get("sid")
         if not identity_value:
             raise credentials_exception
 
-        user = await store.user.check_exist(model_id=UUID(identity_value))
+        session_exist = await store.user_session.check_exist_and_active(
+            model_id=UUID(identity_value)
+        )
 
-        if not user:
+        if not session_exist:
             raise credentials_exception
 
-        return UUID(identity_value)
+        return UUID(payload.get("sub"))
 
     except HTTPException:
         raise

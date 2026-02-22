@@ -7,12 +7,14 @@ from src.models.project import (
     ProjectParticipant,
     ProjectPosition,
 )
+from src.models.sessions import Session
 from src.models.user import User, UserEducation
 
 __all__ = [
     "BaseWithTimestamps",
     "Base",
     "User",
+    "Session",
     "UserEducation",
     "ApplicationStatus",
     "Notification",
