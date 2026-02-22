@@ -26,6 +26,7 @@ from src.schemas.project import (
 from src.schemas.project import (
     ProjectPosition as ProjectPositionSchema,
 )
+from src.schemas.user import UserTypeEnum
 
 
 class ProjectService:
@@ -116,6 +117,7 @@ class ProjectService:
                 team_members.append(
                     ProjectMember(
                         user_id=user.id,
+                        user_type=UserTypeEnum(user.user_type.value),
                         full_name=f"{user.first_name or ''} {user.last_name or ''}".strip()
                         or "Unknown",
                         avatar_url=user.avatar_url,
@@ -131,6 +133,7 @@ class ProjectService:
                 team_members.append(
                     ProjectMember(
                         user_id=owner.id,
+                        user_type=UserTypeEnum(owner.user_type.value),
                         full_name=f"{owner.first_name or ''} {owner.last_name or ''}".strip()
                         or "Unknown",
                         avatar_url=owner.avatar_url,

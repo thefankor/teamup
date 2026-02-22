@@ -3,6 +3,7 @@ from enum import Enum
 from uuid import UUID
 
 from pydantic import BaseModel, HttpUrl
+from src.schemas.user import UserTypeEnum
 
 
 class ProjectStatus(str, Enum):
@@ -19,6 +20,7 @@ class Level(str, Enum):
 
 class ProjectMember(BaseModel):
     user_id: UUID
+    user_type: UserTypeEnum
     full_name: str
     avatar_url: HttpUrl | None = None
     roles: list[str]

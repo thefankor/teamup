@@ -54,8 +54,16 @@ class Project(BaseModel):
     tags: List[str] = []
 
 
+class UserTypeEnum(str, Enum):
+    """Тип пользователя для API (RBAC). Не путать с ролями внутри проектов (roles)."""
+
+    USER = "USER"
+    ADMIN = "ADMIN"
+
+
 class UserProfileResponse(BaseModel):
     id: UUID
+    user_type: UserTypeEnum = UserTypeEnum.USER
     first_name: str | None = None
     last_name: str | None = None
     middle_name: Optional[str] = None
@@ -68,6 +76,12 @@ class UserProfileResponse(BaseModel):
     contact_info: ContactInfo
     education: List[Education]
     projects: List[Project]
+
+
+class SetUserTypeRequest(BaseModel):
+    """Тело запроса на смену типа пользователя (только для администратора)."""
+
+    user_type: UserTypeEnum
 
 
 class ProfileCoreUpdate(BaseModel):
