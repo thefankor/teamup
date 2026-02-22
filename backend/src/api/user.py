@@ -5,7 +5,7 @@ from src.core.dependencies import require_permission
 from src.core.permissions import (
     PROFILE_READ_OWN,
     PROFILE_UPDATE_OWN,
-    USERS_MANAGE_USER_TYPES,
+    USERS_MANAGE_USER_TYPES, USERS_GET_PROFILES,
 )
 from src.schemas.user import (
     ContactInfo,
@@ -76,7 +76,7 @@ async def get_profile(
 )
 async def get_profile_by_id(
     user_id: UUID,
-    _: UUID = Depends(require_permission(USERS_MANAGE_USER_TYPES)),
+    _: UUID = Depends(require_permission(USERS_GET_PROFILES)),
     service: UserService = Depends(),
 ):
     return await service.get_profile(user_id=user_id)

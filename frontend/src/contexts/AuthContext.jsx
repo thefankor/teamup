@@ -80,10 +80,13 @@ export function AuthProvider({ children }) {
         setUser(userData);
     };
 
+    const isAdmin = Boolean((user?.user_type || '').toLowerCase() === 'admin');
+
     const value = {
         user,
         loading,
         isAuthenticated,
+        isAdmin,
         login,
         sendCode,
         logout,

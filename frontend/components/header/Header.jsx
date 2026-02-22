@@ -75,6 +75,9 @@ export const Header = () => {
                             </svg>
                         </Link>
                         <div className={style.userMenu}>
+                            {(user?.user_type || '').toLowerCase() === 'admin' && (
+                                <span className={style.adminBadge} title="Администратор">✓ Админ</span>
+                            )}
                             <Link to="/profile" className={style.userButton} aria-label="Профиль">
                                 {user?.avatar_url ? (
                                     <img src={user.avatar_url} alt="Avatar" className={style.userAvatar} />

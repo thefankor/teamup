@@ -201,6 +201,18 @@
 
 .userMenu {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.adminBadge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: #dbeafe;
+    color: #1e40af;
 }
 
 .userButton {

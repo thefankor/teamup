@@ -21,6 +21,7 @@ APPLICATIONS_WITHDRAW_OWN = "applications:withdraw_own"
 APPLICATIONS_LIST_ON_OWN_PROJECT = "applications:list_on_own_project"
 APPLICATIONS_DECIDE_ON_OWN_PROJECT = "applications:decide_on_own_project"
 NOTIFICATIONS_READ_OWN = "notifications:read_own"
+USERS_GET_PROFILES = "users:get_profiles"
 USERS_MANAGE_USER_TYPES = "users:manage_user_types"
 
 
@@ -60,6 +61,7 @@ USER_TYPE_PERMISSIONS: dict[UserType, set[str]] = {
         APPLICATIONS_LIST_ON_OWN_PROJECT,
         APPLICATIONS_DECIDE_ON_OWN_PROJECT,
         NOTIFICATIONS_READ_OWN,
+        USERS_GET_PROFILES,
         USERS_MANAGE_USER_TYPES,
     },
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { projectsAPI } from '../../services/api';
 import style from './Project.module.scss';
@@ -228,8 +228,24 @@ export default function Project() {
                                         </div>
                                     )}
                                     <div className={style.teamInfo}>
-                                        <h3 className={style.teamName}>{member.full_name}</h3>
+                                        <h3 className={style.teamName}>
+                                            {(user?.user_type || '').toLowerCase() === 'admin' ? (
+                                                <Link to={`/user/${member.user_id}`} className={style.teamMemberLink}>
+                                                    {member.full_name}
+                                                </Link>
+                                            ) : (
+                                                member.full_name
+                                            )}
+                                            {(member.user_type || '').toLowerCase() === 'admin' && (
+                                                <span className={style.adminBadge} title="Администратор">✓ Админ</span>
+                                            )}
+                                        </h3>
                                         <p className={style.teamRole}>{member.roles?.join(', ') || 'Участник'}</p>
+                                        {(user?.user_type || '').toLowerCase() === 'admin' && (
+                                            <Link to={`/user/${member.user_id}`} className={style.changeTypeLink}>
+                                                Сменить тип
+                                            </Link>
+                                        )}
                                     </div>
                                 </div>
                             ))}
