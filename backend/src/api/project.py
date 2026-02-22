@@ -23,11 +23,15 @@ router = APIRouter(tags=["Projects"])
 @router.get("", response_model=ProjectsPage)
 async def list_open_projects(
     q: str | None = None,
+    role: str | None = None,
+    level: str | None = None,
     limit: int = 20,
     offset: int = 0,
     service: ProjectService = Depends(),
 ) -> ProjectsPage:
-    return await service.list_open_projects(q=q, limit=limit, offset=offset)
+    return await service.list_open_projects(
+        q=q, role=role, level=level, limit=limit, offset=offset
+    )
 
 
 @router.get("/{project_id}", response_model=Project)
@@ -47,6 +51,19 @@ async def my_projects(
     service: ProjectService = Depends(),
 ):
     return await service.my_projects(
+        user_id=current_user_id, status=status, limit=limit, offset=offset
+    )
+
+
+@router.get("/me/participating", response_model=ProjectsPage)
+async def participating_projects(
+    status: ProjectStatus | None = None,
+    limit: int = 20,
+    offset: int = 0,
+    current_user_id: UUID = Depends(get_current_user_id),
+    service: ProjectService = Depends(),
+):
+    return await service.participating_projects(
         user_id=current_user_id, status=status, limit=limit, offset=offset
     )
 
