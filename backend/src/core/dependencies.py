@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Callable, Literal
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Query, status
@@ -6,6 +6,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.auth import TokenService
 from src.core.db.database import get_async_db
+from src.core.exceptions import ForbiddenException
+from src.core.permissions import has_permission
 from src.crud import Store
 from src.models import User
 
@@ -24,17 +26,6 @@ async def check_token_dependency(
     await check_token(token_type=token_type, credentials=credentials, store=store)
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    store: Store = Depends(get_store),
-) -> User:
-    return await _get_current_entity(
-        credentials=credentials,
-        expected_type="CLIENT",
-        store=store,
-    )
-
-
 async def get_current_user_id(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     store: Store = Depends(get_store),
@@ -44,6 +35,46 @@ async def get_current_user_id(
         expected_type="CLIENT",
         store=store,
     )
+
+
+async def get_current_user_entity(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    store: Store = Depends(get_store),
+) -> User:
+    """Загружает текущего пользователя по токену. 401 если не авторизован."""
+    user_id = await get_current_user_id(credentials=credentials, store=store)
+    user = await store.user.find_by_id(model_id=user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"detail": "Authentication failed.", "message": "User not found"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
+def require_permission(permission: str) -> Callable:
+    """
+    Dependency factory: проверяет разрешение у текущего пользователя.
+    Возвращает UUID пользователя при успехе. 401 — не авторизован, 403 — нет права.
+    """
+
+    async def _dependency(
+        current_user: User = Depends(get_current_user_entity),
+    ) -> UUID:
+        if not has_permission(current_user.user_type, permission):
+            raise ForbiddenException(detail="Недостаточно прав для выполнения действия")
+        return current_user.id
+
+    return _dependency
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    store: Store = Depends(get_store),
+) -> User:
+    """Текущий пользователь (модель). Для обратной совместимости."""
+    return await get_current_user_entity(credentials=credentials, store=store)
 
 
 async def check_token(

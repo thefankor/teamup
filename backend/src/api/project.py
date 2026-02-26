@@ -1,7 +1,19 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from src.core.dependencies import get_current_user_id
+from src.core.dependencies import require_permission
+from src.core.permissions import (
+    APPLICATIONS_DECIDE_ON_OWN_PROJECT,
+    APPLICATIONS_LIST_ON_OWN_PROJECT,
+    APPLICATIONS_SUBMIT,
+    APPLICATIONS_WITHDRAW_OWN,
+    PROJECTS_CREATE,
+    PROJECTS_DELETE_OWN,
+    PROJECTS_LIST_OWN,
+    PROJECTS_LIST_PARTICIPATING,
+    PROJECTS_SET_STATUS_OWN,
+    PROJECTS_UPDATE_OWN,
+)
 from src.schemas.project import (
     Application,
     ApplicationCreate,
@@ -47,7 +59,7 @@ async def my_projects(
     status: ProjectStatus | None = None,
     limit: int = 20,
     offset: int = 0,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(PROJECTS_LIST_OWN)),
     service: ProjectService = Depends(),
 ):
     return await service.my_projects(
@@ -60,7 +72,7 @@ async def participating_projects(
     status: ProjectStatus | None = None,
     limit: int = 20,
     offset: int = 0,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(PROJECTS_LIST_PARTICIPATING)),
     service: ProjectService = Depends(),
 ):
     return await service.participating_projects(
@@ -71,7 +83,7 @@ async def participating_projects(
 @router.post("", response_model=Project, status_code=status.HTTP_201_CREATED)
 async def create_project(
     payload: ProjectCreate,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(PROJECTS_CREATE)),
     service: ProjectService = Depends(),
 ):
     return await service.create_project(user_id=current_user_id, data=payload)
@@ -81,7 +93,7 @@ async def create_project(
 async def update_project(
     project_id: UUID,
     payload: ProjectUpdate,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(PROJECTS_UPDATE_OWN)),
     service: ProjectService = Depends(),
 ):
     return await service.update_project(
@@ -93,7 +105,7 @@ async def update_project(
 async def set_status(
     project_id: UUID,
     status: ProjectStatus,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(PROJECTS_SET_STATUS_OWN)),
     service: ProjectService = Depends(),
 ):
     return await service.set_status(
@@ -104,7 +116,7 @@ async def set_status(
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_project(
     project_id: UUID,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(PROJECTS_DELETE_OWN)),
     service: ProjectService = Depends(),
 ):
     await service.delete_project(project_id=project_id, user_id=current_user_id)
@@ -118,7 +130,7 @@ async def delete_project(
 async def submit_application(
     project_id: UUID,
     payload: ApplicationCreate,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(APPLICATIONS_SUBMIT)),
     service: ProjectService = Depends(),
 ):
     return await service.submit_application(
@@ -132,7 +144,7 @@ async def submit_application(
 async def withdraw_application(
     project_id: UUID,
     application_id: UUID,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(require_permission(APPLICATIONS_WITHDRAW_OWN)),
     service: ProjectService = Depends(),
 ):
     return await service.withdraw_application(
@@ -146,7 +158,9 @@ async def list_applications(
     status_filter: ApplicationStatus | None = None,
     limit: int = 20,
     offset: int = 0,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(
+        require_permission(APPLICATIONS_LIST_ON_OWN_PROJECT)
+    ),
     service: ProjectService = Depends(),
 ):
     return await service.list_applications(
@@ -165,7 +179,9 @@ async def decide_application(
     project_id: UUID,
     application_id: UUID,
     payload: ApplicationDecision,
-    current_user_id: UUID = Depends(get_current_user_id),
+    current_user_id: UUID = Depends(
+        require_permission(APPLICATIONS_DECIDE_ON_OWN_PROJECT)
+    ),
     service: ProjectService = Depends(),
 ):
     return await service.decide_application(

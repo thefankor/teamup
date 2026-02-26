@@ -248,7 +248,12 @@ export default function Profile() {
                             </div>
                         )}
                         <div className={style.profileInfo}>
-                            <h1 className={style.name}>{profile.firstName} {profile.lastName}</h1>
+                            <h1 className={style.name}>
+                                {profile.firstName} {profile.lastName}
+                                {(user?.user_type || '').toLowerCase() === 'admin' && (
+                                    <span className={style.adminBadge} title="Администратор">✓ Админ</span>
+                                )}
+                            </h1>
                             <p className={style.role}>{profile.role}</p>
                             <div className={style.tags}>
                                 {profile.tags.map((tag, index) => (

@@ -12,6 +12,7 @@ from src.schemas.user import (
     EducationUpdate,
     ProfileCoreUpdate,
     UserProfileResponse,
+    UserTypeEnum,
 )
 
 
@@ -59,6 +60,7 @@ class UserService:
 
         return UserProfileResponse(
             id=user.id,
+            user_type=UserTypeEnum(user.user_type.value),
             first_name=user.first_name,
             last_name=user.last_name,
             middle_name=user.middle_name,
@@ -144,3 +146,15 @@ class UserService:
 
         await self._store.user_education.delete(model_id=edu_id)
         return await self.get_profile(user_id=user_id)
+
+    async def set_user_type(
+        self, target_user_id: UUID, user_type: UserTypeEnum
+    ) -> UserProfileResponse:
+        """Назначает тип пользователя (user_type). Только для администратора (проверка на эндпоинте)."""
+        from src.models.enums import UserType
+
+        type_model = UserType(user_type.value)
+        await self._store.user.update(
+            model_id=target_user_id, return_model=False, user_type=type_model
+        )
+        return await self.get_profile(user_id=target_user_id)

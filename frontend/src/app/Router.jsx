@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import App from '../pages/ui/App'
 import Notifications from '../pages/ui/Notifications'
 import Profile from '../pages/ui/Profile'
+import UserProfile from '../pages/ui/UserProfile'
 import Project from '../pages/ui/Project'
 import Auth from '../pages/ui/Auth'
 import MyProjects from '../pages/ui/MyProjects'
@@ -48,6 +49,14 @@ function RouterContent() {
                 element={
                     <ProtectedRoute>
                         <Layout><Profile /></Layout>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/user/:userId"
+                element={
+                    <ProtectedRoute>
+                        <Layout><UserProfile /></Layout>
                     </ProtectedRoute>
                 }
             />

@@ -35,7 +35,10 @@ class ApiClient {
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
-                throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+                const message = typeof error.detail === 'string' ? error.detail : (error.detail?.message || JSON.stringify(error.detail) || `HTTP error! status: ${response.status}`);
+                const err = new Error(message);
+                err.status = response.status;
+                throw err;
             }
 
             // Если ответ пустой (204 No Content), возвращаем null
@@ -114,6 +117,16 @@ export const userAPI = {
     getProfile: async () => {
         const client = new ApiClient();
         return client.get('/user');
+    },
+
+    getProfileById: async (userId) => {
+        const client = new ApiClient();
+        return client.get(`/user/${userId}`);
+    },
+
+    setUserType: async (userId, userType) => {
+        const client = new ApiClient();
+        return client.put(`/user/${userId}/user_type`, { user_type: userType });
     },
 
     updateProfile: async (data) => {

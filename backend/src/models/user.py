@@ -1,9 +1,10 @@
 import uuid
 
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from src.models.base import BaseWithTimestamps
+from src.models.enums import UserType
 
 
 class User(BaseWithTimestamps):
@@ -11,6 +12,12 @@ class User(BaseWithTimestamps):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    user_type: Mapped[UserType] = mapped_column(
+        Enum(UserType, native_enum=False),
+        default=UserType.USER,
+        server_default="user",
+        nullable=False,
+    )
     phone: Mapped[str | None]
 
     first_name: Mapped[str | None]

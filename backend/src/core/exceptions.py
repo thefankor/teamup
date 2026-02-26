@@ -52,6 +52,16 @@ class NotFoundException(BaseError):
     detail = "Ресурс не найден"
 
 
+class ForbiddenException(BaseError):
+    """Исключение при недостатке прав доступа.
+
+    Возникает, когда пользователь авторизован, но у него нет разрешения на действие (403).
+    """
+
+    status_code = status.HTTP_403_FORBIDDEN
+    detail = "Недостаточно прав для выполнения действия"
+
+
 class DatabaseException(BaseError):
     """Исключение при ошибках базы данных.
 
