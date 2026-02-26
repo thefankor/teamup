@@ -103,6 +103,29 @@
     }
 }
 
+.avatarDeleteButton {
+    border: 1px solid #fecaca;
+    background-color: #fff1f2;
+    color: #b91c1c;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        border-color: #fca5a5;
+        background-color: #ffe4e6;
+        color: #991b1b;
+    }
+
+    &:disabled {
+        cursor: wait;
+        opacity: 0.7;
+    }
+}
+
 .profileInfo {
     flex: 1;
 }

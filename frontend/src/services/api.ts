@@ -413,6 +413,11 @@ export const userAPI = {
         return client.put<UserProfile>(`/user/avatar/confirm?${query}`);
     },
 
+    deleteAvatar: async () => {
+        const client = new ApiClient();
+        return client.delete<void>('/user/avatar');
+    },
+
     uploadAvatar: async (file: File) => {
         const normalizedType = file.type || 'application/octet-stream';
         const { upload_url, object_key } = await userAPI.getAvatarUploadUrl(normalizedType);

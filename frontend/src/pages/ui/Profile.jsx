@@ -18,6 +18,7 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [avatarUploading, setAvatarUploading] = useState(false);
+    const [avatarDeleting, setAvatarDeleting] = useState(false);
     const avatarInputRef = useRef(null);
 
     // Перенаправляем, если не авторизован
@@ -212,6 +213,20 @@ export default function Profile() {
         }
     };
 
+    const handleAvatarDelete = async () => {
+        setError('');
+        setAvatarDeleting(true);
+
+        try {
+            await userAPI.deleteAvatar();
+            await loadUser();
+        } catch (err) {
+            setError(err.message || 'Ошибка удаления аватарки');
+        } finally {
+            setAvatarDeleting(false);
+        }
+    };
+
     if (loading || !user) {
         return <div className={style.profilePage}><div className={style.container}>Загрузка...</div></div>;
     }
@@ -288,10 +303,20 @@ export default function Profile() {
                                 type="button"
                                 className={style.avatarUploadButton}
                                 onClick={() => avatarInputRef.current?.click()}
-                                disabled={avatarUploading}
+                                disabled={avatarUploading || avatarDeleting}
                             >
                                 {avatarUploading ? 'Загрузка...' : 'Изменить фото'}
                             </button>
+                            {profile.avatar && (
+                                <button
+                                    type="button"
+                                    className={style.avatarDeleteButton}
+                                    onClick={handleAvatarDelete}
+                                    disabled={avatarUploading || avatarDeleting}
+                                >
+                                    {avatarDeleting ? 'Удаление...' : 'Удалить фото'}
+                                </button>
+                            )}
                         </div>
                         <div className={style.profileInfo}>
                             <h1 className={style.name}>
