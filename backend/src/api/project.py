@@ -22,9 +22,11 @@ from src.schemas.project import (
     ApplicationStatus,
     Project,
     ProjectCreate,
+    ProjectSortField,
     ProjectsPage,
     ProjectStatus,
-    ProjectUpdate, ProjectSortField, SortOrder,
+    ProjectUpdate,
+    SortOrder,
 )
 from src.services.project import ProjectService
 from starlette import status

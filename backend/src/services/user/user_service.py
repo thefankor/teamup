@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from fastapi import Depends
-
 from src.core.dependencies import get_store
 from src.core.exceptions import NotFoundException
 from src.crud import Store
@@ -51,9 +50,7 @@ class UserService:
 
         avatar_url = None
         if user.avatar_key:
-            avatar_url = await self._s3.presigned_get_url(
-                key=user.avatar_key
-            )
+            avatar_url = await self._s3.presigned_get_url(key=user.avatar_key)
 
         educations = await self._store.user_education.find_all(user_id=user_id)
         education_list = [
@@ -168,6 +165,10 @@ class UserService:
         )
         return await self.get_profile(user_id=target_user_id)
 
-    async def set_avatar_key(self, user_id: UUID, object_key: str) -> UserProfileResponse:
-        await self._store.user.update(model_id=user_id, return_model=False, avatar_key=object_key)
+    async def set_avatar_key(
+        self, user_id: UUID, object_key: str
+    ) -> UserProfileResponse:
+        await self._store.user.update(
+            model_id=user_id, return_model=False, avatar_key=object_key
+        )
         return await self.get_profile(user_id=user_id)

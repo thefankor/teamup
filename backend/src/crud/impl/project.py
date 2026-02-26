@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from src.core.wrapper import handle_db_errors
 from src.crud.impl.base import BaseDAO
 from src.models import Project, ProjectPosition
@@ -63,10 +63,14 @@ class ProjectDAO(BaseDAO):
             positions_count = func.count(ProjectPosition.id)
 
             query = (
-                query.outerjoin(ProjectPosition, ProjectPosition.project_id == self.model.id)
+                query.outerjoin(
+                    ProjectPosition, ProjectPosition.project_id == self.model.id
+                )
                 .group_by(self.model.id)
                 .order_by(
-                    positions_count.asc() if order == SortOrder.asc else positions_count.desc(),
+                    positions_count.asc()
+                    if order == SortOrder.asc
+                    else positions_count.desc(),
                     self.model.created_at.desc(),
                 )
             )

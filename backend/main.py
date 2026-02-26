@@ -6,9 +6,8 @@ from fastapi import FastAPI
 from src.api import router
 from src.config import settings
 from src.core.db.redis_cache import RedisCache, redis_cache, set_cache
-from starlette.middleware.cors import CORSMiddleware
-
 from src.utils.s3_service import S3Service
+from starlette.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager

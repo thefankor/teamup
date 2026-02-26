@@ -16,12 +16,12 @@ from src.schemas.user import (
     SetUserTypeRequest,
     SkillsReplace,
     TagsReplace,
-    UserProfileResponse, UserAvatarUploadResponse,
+    UserAvatarUploadResponse,
+    UserProfileResponse,
 )
 from src.services.user import UserService
-from starlette import status
-
 from src.utils.s3_service import S3Service
+from starlette import status
 
 router = APIRouter(tags=["User"])
 
@@ -94,7 +94,9 @@ async def update_core(
     return await service.update_profile(user_id=current_user_id, data=payload)
 
 
-@router.post("/avatar/upload-url", response_model=UserAvatarUploadResponse, status_code=200)
+@router.post(
+    "/avatar/upload-url", response_model=UserAvatarUploadResponse, status_code=200
+)
 async def get_avatar_upload_url(
     content_type: str,
     current_user_id: UUID = _current_user_id_update(),

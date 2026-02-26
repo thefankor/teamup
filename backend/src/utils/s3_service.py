@@ -1,9 +1,9 @@
 import uuid
+
 import anyio
 import boto3
 from botocore.config import Config as BotoConfig
 from botocore.exceptions import ClientError
-
 from src.config import settings
 
 
@@ -71,10 +71,10 @@ class S3Service:
         return upload_url, object_key
 
     async def presigned_get_url(
-            self,
-            *,
-            key: str,
-            expires_in: int = 60 * 10,
+        self,
+        *,
+        key: str,
+        expires_in: int = 60 * 10,
     ) -> str:
         """Pre-signed URL на скачивание/просмотр."""
 
@@ -87,4 +87,5 @@ class S3Service:
                 },
                 ExpiresIn=expires_in,
             )
+
         return await anyio.to_thread.run_sync(_sync)
