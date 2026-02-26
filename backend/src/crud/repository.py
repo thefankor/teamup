@@ -8,6 +8,7 @@ from src.crud.impl import (
     UserDAO,
     UserEducationDAO,
 )
+from src.crud.impl.sessions import SessionDAO
 
 
 class Store:
@@ -36,6 +37,7 @@ class Store:
         """
         self._session = session
         self._user_dao: UserDAO | None = None
+        self._user_session: SessionDAO | None = None
         self._user_education_dao: UserEducationDAO | None = None
         self._project_dao: ProjectDAO | None = None
         self._project_position_dao: ProjectPositionDAO | None = None
@@ -119,3 +121,15 @@ class Store:
         if self._notification_dao is None:
             self._notification_dao = NotificationDAO(session=self._session)
         return self._notification_dao
+
+    @property
+    def user_session(self) -> SessionDAO:
+        """
+        Возвращает интерфейс для работы с сессиями пользователей.
+
+        Returns:
+            SessionDAO: Интерфейс для работы с сессиями.
+        """
+        if self._user_session is None:
+            self._user_session = SessionDAO(session=self._session)
+        return self._user_session

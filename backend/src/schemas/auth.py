@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr, field_validator
 
 
-class AuthResponse(BaseModel):
-    token: str
+class TokenInfo(BaseModel):
+    access_token: str
+    refresh_token: str
 
 
 class LoginRequest(BaseModel):
@@ -20,3 +21,7 @@ class VerifyCodeRequest(LoginRequest):
 
 class EmptyModel(BaseModel):
     pass
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

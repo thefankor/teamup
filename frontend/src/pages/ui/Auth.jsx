@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header } from '../../../components/header/Header';
 import { useAuth } from '../../contexts/AuthContext';
 import style from './Auth.module.scss';
 
 export default function Auth() {
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const navigate = useNavigate();
     const { sendCode, login, isAuthenticated } = useAuth();
     const isRegister = searchParams.get('register') === 'true';
+    const redirectTo = location.state?.from || '/';
     
     const [step, setStep] = useState(1); // 1: email, 2: code
     const [email, setEmail] = useState('');
@@ -21,9 +23,9 @@ export default function Auth() {
     // Если пользователь уже авторизован, перенаправляем на главную
     useEffect(() => {
         if (isAuthenticated) {
-            navigate('/');
+            navigate(redirectTo, { replace: true });
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, navigate, redirectTo]);
 
     // Таймер для повторной отправки
     useEffect(() => {
@@ -84,7 +86,7 @@ export default function Auth() {
         setLoading(false);
 
         if (result.success) {
-            navigate('/');
+            navigate(redirectTo, { replace: true });
         } else {
             setError(result.error || 'Неверный код');
         }
