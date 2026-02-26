@@ -16,9 +16,11 @@ from src.schemas.project import (
     ProjectCard,
     ProjectCreate,
     ProjectMember,
+    ProjectSortField,
     ProjectsPage,
     ProjectStatus,
     ProjectUpdate,
+    SortOrder,
 )
 from src.schemas.project import (
     Project as ProjectSchema,
@@ -27,6 +29,7 @@ from src.schemas.project import (
     ProjectPosition as ProjectPositionSchema,
 )
 from src.schemas.user import UserTypeEnum
+from src.utils.s3_service import S3Service
 
 
 class ProjectService:
@@ -36,13 +39,18 @@ class ProjectService:
     обновление, управление заявками и участниками.
     """
 
-    def __init__(self, store: Store = Depends(get_store)):
+    def __init__(
+        self,
+        store: Store = Depends(get_store),
+        s3: S3Service = Depends(),
+    ):
         """Инициализация сервиса проектов.
 
         Args:
             store: Хранилище данных для операций с проектами.
         """
         self._store = store
+        self._s3 = s3
 
     def _model_status_to_schema(self, is_open: bool) -> ProjectStatus:
         """Конвертирует is_open в ProjectStatus."""
@@ -114,13 +122,17 @@ class ProjectService:
                     pos.role for pos in positions if pos.id in user_position_ids
                 ]
 
+                avatar_url = None
+                if user.avatar_key:
+                    avatar_url = await self._s3.presigned_get_url(key=user.avatar_key)
+
                 team_members.append(
                     ProjectMember(
                         user_id=user.id,
                         user_type=UserTypeEnum(user.user_type.value),
                         full_name=f"{user.first_name or ''} {user.last_name or ''}".strip()
                         or "Unknown",
-                        avatar_url=user.avatar_url,
+                        avatar_url=avatar_url,
                         roles=[participant.role] + user_roles,
                         tags=user.tags,
                         is_owner=user.id == project.owner_id,
@@ -130,13 +142,17 @@ class ProjectService:
         if project.owner_id not in team_member_ids:
             owner = await self._store.user.find_by_id(model_id=project.owner_id)
             if owner:
+                avatar_url = None
+                if owner.avatar_key:
+                    avatar_url = await self._s3.presigned_get_url(key=owner.avatar_key)
+
                 team_members.append(
                     ProjectMember(
                         user_id=owner.id,
                         user_type=UserTypeEnum(owner.user_type.value),
                         full_name=f"{owner.first_name or ''} {owner.last_name or ''}".strip()
                         or "Unknown",
-                        avatar_url=owner.avatar_url,
+                        avatar_url=avatar_url,
                         roles=["Owner"],
                         tags=owner.tags,
                         is_owner=True,
@@ -161,12 +177,25 @@ class ProjectService:
         q: str | None = None,
         role: str | None = None,
         level: str | None = None,
+        sort_by: ProjectSortField = ProjectSortField.created_at,
+        order: SortOrder = SortOrder.desc,
         limit: int = 20,
         offset: int = 0,
     ) -> ProjectsPage:
         """Получает список открытых проектов с фильтрацией."""
         projects = await self._store.project.find_open_projects(
-            q=q, role=role, level=level, limit=limit, offset=offset
+            q=q,
+            role=role,
+            level=level,
+            sort_by=sort_by,
+            order=order,
+            limit=limit,
+            offset=offset,
+        )
+        total = await self._store.project.count_open_projects(
+            q=q,
+            role=role,
+            level=level,
         )
 
         items = [
@@ -180,7 +209,7 @@ class ProjectService:
             for project in projects
         ]
 
-        return ProjectsPage(items=items)
+        return ProjectsPage(items=items, total=total)
 
     async def get_project(self, project_id: UUID) -> ProjectSchema:
         """Получает проект по ID."""

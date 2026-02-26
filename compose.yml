@@ -90,6 +90,19 @@ services:
     stdin_open: true
     tty: true
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    volumes:
+      - teamup_minio_data:/data
+
 volumes:
   teamup_db_data:
   teamup_redis_data:
+  teamup_minio_data:

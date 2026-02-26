@@ -18,6 +18,16 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 5
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    S3_ENDPOINT_URL: str = "http://localhost:9000"
+    S3_ACCESS_KEY: str = "minioadmin"
+    S3_SECRET_KEY: str = "minioadmin123"
+    S3_BUCKET: str = "app-bucket"
+    S3_REGION: str = "us-east-1"
+    S3_PUBLIC_HOST: str | None = None
+
+    S3_MAX_FILE_SIZE: int = 15 * 1024 * 1024
+    S3_ALLOWED_MIME: str = "image/jpeg,image/png,image/webp"
+
     class Config:
         env_file = ".env"
         extra = "allow"

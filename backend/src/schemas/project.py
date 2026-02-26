@@ -88,6 +88,7 @@ class ProjectUpdate(BaseModel):
 
 class ProjectsPage(BaseModel):
     items: list[ProjectCard]
+    total: int | None = None
 
 
 class ProjectFilters(BaseModel):
@@ -97,6 +98,16 @@ class ProjectFilters(BaseModel):
     level: Level | None = None
     limit: int = 20
     cursor: str | None = None
+
+
+class ProjectSortField(str, Enum):
+    created_at = "created_at"
+    open_positions = "open_positions"
+
+
+class SortOrder(str, Enum):
+    asc = "asc"
+    desc = "desc"
 
 
 class ApplicationStatus(str, Enum):

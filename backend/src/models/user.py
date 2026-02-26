@@ -23,7 +23,7 @@ class User(BaseWithTimestamps):
     first_name: Mapped[str | None]
     last_name: Mapped[str | None]
     middle_name: Mapped[str | None]
-    avatar_url: Mapped[str | None]
+    avatar_key: Mapped[str | None]
     position: Mapped[str | None]
     about: Mapped[str | None]
     looking_for_projects: Mapped[bool] = mapped_column(

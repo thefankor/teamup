@@ -45,6 +45,14 @@
     align-items: flex-start;
 }
 
+.avatarSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
 .avatar {
     width: 120px;
     height: 120px;
@@ -66,6 +74,56 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+}
+
+.hiddenFileInput {
+    display: none;
+}
+
+.avatarUploadButton {
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    color: #1f2937;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        border-color: #3b82f6;
+        color: #1d4ed8;
+        background-color: #eff6ff;
+    }
+
+    &:disabled {
+        cursor: wait;
+        opacity: 0.7;
+    }
+}
+
+.avatarDeleteButton {
+    border: 1px solid #fecaca;
+    background-color: #fff1f2;
+    color: #b91c1c;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        border-color: #fca5a5;
+        background-color: #ffe4e6;
+        color: #991b1b;
+    }
+
+    &:disabled {
+        cursor: wait;
+        opacity: 0.7;
+    }
 }
 
 .profileInfo {
@@ -541,6 +599,10 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
+    }
+
+    .avatarSection {
+        width: 100%;
     }
 
     .contactsGrid {

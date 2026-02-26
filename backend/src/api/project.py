@@ -22,9 +22,11 @@ from src.schemas.project import (
     ApplicationStatus,
     Project,
     ProjectCreate,
+    ProjectSortField,
     ProjectsPage,
     ProjectStatus,
     ProjectUpdate,
+    SortOrder,
 )
 from src.services.project import ProjectService
 from starlette import status
@@ -37,12 +39,20 @@ async def list_open_projects(
     q: str | None = None,
     role: str | None = None,
     level: str | None = None,
+    sort_by: ProjectSortField = ProjectSortField.created_at,
+    order: SortOrder = SortOrder.desc,
     limit: int = 20,
     offset: int = 0,
     service: ProjectService = Depends(),
 ) -> ProjectsPage:
     return await service.list_open_projects(
-        q=q, role=role, level=level, limit=limit, offset=offset
+        q=q,
+        role=role,
+        level=level,
+        sort_by=sort_by,
+        order=order,
+        limit=limit,
+        offset=offset,
     )
 
 
