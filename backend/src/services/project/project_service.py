@@ -192,6 +192,11 @@ class ProjectService:
             limit=limit,
             offset=offset,
         )
+        total = await self._store.project.count_open_projects(
+            q=q,
+            role=role,
+            level=level,
+        )
 
         items = [
             ProjectCard(
@@ -204,7 +209,7 @@ class ProjectService:
             for project in projects
         ]
 
-        return ProjectsPage(items=items)
+        return ProjectsPage(items=items, total=total)
 
     async def get_project(self, project_id: UUID) -> ProjectSchema:
         """Получает проект по ID."""

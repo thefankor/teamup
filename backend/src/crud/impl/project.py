@@ -10,6 +10,38 @@ from src.schemas.project import ProjectSortField, SortOrder
 class ProjectDAO(BaseDAO):
     model = Project
 
+    def _apply_open_projects_filters(
+        self,
+        query,
+        q: str | None = None,
+        role: str | None = None,
+        level: str | None = None,
+    ):
+        if q:
+            query = query.where(
+                (self.model.title.ilike(f"%{q}%"))
+                | (self.model.description.ilike(f"%{q}%"))
+            )
+
+        if role or level:
+            position_subquery = select(ProjectPosition.project_id).distinct()
+
+            conditions = []
+            if role:
+                conditions.append(ProjectPosition.role.ilike(f"%{role}%"))
+            if level:
+                level_lower = level.lower()
+                conditions.append(ProjectPosition.level.ilike(f"%{level_lower}%"))
+
+            if conditions:
+                from sqlalchemy import and_
+
+                position_subquery = position_subquery.where(and_(*conditions))
+
+            query = query.where(self.model.id.in_(position_subquery))
+
+        return query
+
     @handle_db_errors
     async def find_open_projects(
         self,
@@ -24,33 +56,7 @@ class ProjectDAO(BaseDAO):
         """Находит открытые проекты с поиском по тексту и фильтрацией по позициям."""
 
         query = select(self.model).where(self.model.is_open.is_(True))
-
-        if q:
-            query = query.where(
-                (self.model.title.ilike(f"%{q}%"))
-                | (self.model.description.ilike(f"%{q}%"))
-            )
-
-        # Фильтрация по позициям
-        if role or level:
-            # Создаем подзапрос для поиска позиций, соответствующих фильтрам
-            position_subquery = select(ProjectPosition.project_id).distinct()
-
-            conditions = []
-            if role:
-                conditions.append(ProjectPosition.role.ilike(f"%{role}%"))
-            if level:
-                # Преобразуем уровень в нужный формат (JUNIOR -> junior и т.д.)
-                level_lower = level.lower()
-                conditions.append(ProjectPosition.level.ilike(f"%{level_lower}%"))
-
-            if conditions:
-                from sqlalchemy import and_
-
-                position_subquery = position_subquery.where(and_(*conditions))
-
-            # Фильтруем проекты по наличию подходящих позиций
-            query = query.where(self.model.id.in_(position_subquery))
+        query = self._apply_open_projects_filters(query, q=q, role=role, level=level)
 
         if sort_by == ProjectSortField.created_at:
             sort_col = self.model.created_at
@@ -79,6 +85,22 @@ class ProjectDAO(BaseDAO):
 
         result = await self.session.execute(query)
         return list(result.scalars().all())
+
+    @handle_db_errors
+    async def count_open_projects(
+        self,
+        q: str | None = None,
+        role: str | None = None,
+        level: str | None = None,
+    ) -> int:
+        query = (
+            select(func.count())
+            .select_from(self.model)
+            .where(self.model.is_open.is_(True))
+        )
+        query = self._apply_open_projects_filters(query, q=q, role=role, level=level)
+        result = await self.session.execute(query)
+        return int(result.scalar() or 0)
 
     @handle_db_errors
     async def find_by_owner(

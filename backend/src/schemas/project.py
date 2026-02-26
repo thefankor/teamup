@@ -88,6 +88,7 @@ class ProjectUpdate(BaseModel):
 
 class ProjectsPage(BaseModel):
     items: list[ProjectCard]
+    total: int | None = None
 
 
 class ProjectFilters(BaseModel):
