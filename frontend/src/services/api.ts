@@ -37,6 +37,11 @@ export interface UserProfile {
     projects?: unknown[];
 }
 
+interface UserAvatarUploadResponse {
+    upload_url: string;
+    object_key: string;
+}
+
 type SessionExpiredReason =
     | 'missing_refresh_token'
     | 'refresh_failed'
@@ -394,6 +399,37 @@ export const userAPI = {
     deleteEducation: async (eduId: string) => {
         const client = new ApiClient();
         return client.delete<UserProfile>(`/user/education/${eduId}`);
+    },
+
+    getAvatarUploadUrl: async (contentType: string) => {
+        const client = new ApiClient();
+        const query = new URLSearchParams({ content_type: contentType }).toString();
+        return client.post<UserAvatarUploadResponse>(`/user/avatar/upload-url?${query}`);
+    },
+
+    confirmAvatarUpload: async (objectKey: string) => {
+        const client = new ApiClient();
+        const query = new URLSearchParams({ object_key: objectKey }).toString();
+        return client.put<UserProfile>(`/user/avatar/confirm?${query}`);
+    },
+
+    uploadAvatar: async (file: File) => {
+        const normalizedType = file.type || 'application/octet-stream';
+        const { upload_url, object_key } = await userAPI.getAvatarUploadUrl(normalizedType);
+
+        const uploadResponse = await fetch(upload_url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': normalizedType,
+            },
+            body: file,
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error('Не удалось загрузить файл в хранилище');
+        }
+
+        return userAPI.confirmAvatarUpload(object_key);
     },
 };
 

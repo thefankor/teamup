@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
     ContactPhoneIcon,
@@ -17,6 +17,8 @@ export default function Profile() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const avatarInputRef = useRef(null);
 
     // Перенаправляем, если не авторизован
     useEffect(() => {
@@ -183,6 +185,33 @@ export default function Profile() {
 
     const availableTags = ['Front-end', 'Back-end', 'Designer', 'ML-developer'];
 
+    const handleAvatarUpload = async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+
+        if (!file) {
+            return;
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            setError('Поддерживаются только JPG, PNG и WEBP');
+            return;
+        }
+
+        setError('');
+        setAvatarUploading(true);
+
+        try {
+            await userAPI.uploadAvatar(file);
+            await loadUser();
+        } catch (err) {
+            setError(err.message || 'Ошибка загрузки аватарки');
+        } finally {
+            setAvatarUploading(false);
+        }
+    };
+
     if (loading || !user) {
         return <div className={style.profilePage}><div className={style.container}>Загрузка...</div></div>;
     }
@@ -235,18 +264,35 @@ export default function Profile() {
                         </svg>
                     </button>
                     <div className={style.profileHeader}>
-                        {profile.avatar ? (
-                            <img src={profile.avatar} alt={profile.firstName} className={style.avatar} />
-                        ) : (
-                            <div className={style.avatarPlaceholder}>
-                                {profile.firstName && profile.lastName
-                                    ? `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase()
-                                    : profile.firstName
-                                        ? profile.firstName[0].toUpperCase()
-                                        : 'U'
-                                }
-                            </div>
-                        )}
+                        <div className={style.avatarSection}>
+                            {profile.avatar ? (
+                                <img src={profile.avatar} alt={profile.firstName} className={style.avatar} />
+                            ) : (
+                                <div className={style.avatarPlaceholder}>
+                                    {profile.firstName && profile.lastName
+                                        ? `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase()
+                                        : profile.firstName
+                                            ? profile.firstName[0].toUpperCase()
+                                            : 'U'
+                                    }
+                                </div>
+                            )}
+                            <input
+                                ref={avatarInputRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className={style.hiddenFileInput}
+                                onChange={handleAvatarUpload}
+                            />
+                            <button
+                                type="button"
+                                className={style.avatarUploadButton}
+                                onClick={() => avatarInputRef.current?.click()}
+                                disabled={avatarUploading}
+                            >
+                                {avatarUploading ? 'Загрузка...' : 'Изменить фото'}
+                            </button>
+                        </div>
                         <div className={style.profileInfo}>
                             <h1 className={style.name}>
                                 {profile.firstName} {profile.lastName}
