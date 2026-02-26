@@ -21,7 +21,11 @@ class SessionDAO(BaseDAO):
         """
         stmt = (
             update(self.model)
-            .where(self.model.id == session_id, self.model.version == expected_version)
+            .where(
+                self.model.id == session_id,
+                self.model.version == expected_version,
+                self.model.is_active.is_(True),
+            )
             .values(version=self.model.version + 1)
             .returning(self.model.version)
         )

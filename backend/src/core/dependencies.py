@@ -38,6 +38,15 @@ async def get_current_user_id(
 async def get_current_sid(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> UUID:
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "detail": "Authentication failed.",
+                "message": "Not authenticated.",
+            },
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     token = credentials.credentials.replace("Bearer ", "")
     payload = TokenService.get_token_payload(token)
 
