@@ -131,3 +131,8 @@ class EducationUpdate(BaseModel):
     specialty: Optional[str] = None
     degree: Optional[Degree] = None
     graduation_year: Optional[int] = Field(None, ge=1900, le=2100)
+
+
+class UserAvatarUploadResponse(BaseModel):
+    upload_url: str
+    object_key: str

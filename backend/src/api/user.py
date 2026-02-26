@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends
 from src.core.dependencies import require_permission
 from src.core.permissions import (
     PROFILE_READ_OWN,
@@ -16,10 +16,12 @@ from src.schemas.user import (
     SetUserTypeRequest,
     SkillsReplace,
     TagsReplace,
-    UserProfileResponse,
+    UserProfileResponse, UserAvatarUploadResponse,
 )
 from src.services.user import UserService
 from starlette import status
+
+from src.utils.s3_service import S3Service
 
 router = APIRouter(tags=["User"])
 
@@ -92,12 +94,31 @@ async def update_core(
     return await service.update_profile(user_id=current_user_id, data=payload)
 
 
-@router.put("/avatar", response_model=UserProfileResponse, status_code=200)  # TODO
-async def put_avatar(
-    file: UploadFile = File(...),
+@router.post("/avatar/upload-url", response_model=UserAvatarUploadResponse, status_code=200)
+async def get_avatar_upload_url(
+    content_type: str,
     current_user_id: UUID = _current_user_id_update(),
+    s3: S3Service = Depends(),
 ):
-    pass
+    upload_url, object_key = await s3.generate_presigned_upload_url(
+        user_id=str(current_user_id),
+        content_type=content_type,
+    )
+
+    return UserAvatarUploadResponse(
+        upload_url=upload_url,
+        object_key=object_key,
+    )
+
+
+@router.put("/avatar/confirm", response_model=UserProfileResponse)
+async def confirm_avatar(
+    object_key: str,
+    current_user_id: UUID = _current_user_id_update(),
+    service: UserService = Depends(),
+):
+    user = await service.set_avatar_key(user_id=current_user_id, object_key=object_key)
+    return user
 
 
 @router.patch("/contacts", response_model=UserProfileResponse)

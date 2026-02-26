@@ -99,6 +99,16 @@ class ProjectFilters(BaseModel):
     cursor: str | None = None
 
 
+class ProjectSortField(str, Enum):
+    created_at = "created_at"
+    open_positions = "open_positions"
+
+
+class SortOrder(str, Enum):
+    asc = "asc"
+    desc = "desc"
+
+
 class ApplicationStatus(str, Enum):
     pending = "pending"
     approved = "approved"

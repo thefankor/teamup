@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from fastapi import Depends
+
 from src.core.dependencies import get_store
 from src.core.exceptions import NotFoundException
 from src.crud import Store
@@ -14,6 +15,7 @@ from src.schemas.user import (
     UserProfileResponse,
     UserTypeEnum,
 )
+from src.utils.s3_service import S3Service
 
 
 class UserService:
@@ -32,6 +34,7 @@ class UserService:
     def __init__(
         self,
         store: Store = Depends(get_store),
+        s3: S3Service = Depends(),
     ):
         """Инициализация сервиса пользователей.
 
@@ -39,20 +42,26 @@ class UserService:
             store: Хранилище данных, используемое для операций с пользователями.
         """
         self._store = store
+        self._s3 = s3
 
     async def get_profile(self, user_id: UUID) -> UserProfileResponse:
         user = await self._store.user.find_by_id(model_id=user_id)
         if not user:
             raise NotFoundException
 
-        # Загружаем образование пользователя
+        avatar_url = None
+        if user.avatar_key:
+            avatar_url = await self._s3.presigned_get_url(
+                key=user.avatar_key
+            )
+
         educations = await self._store.user_education.find_all(user_id=user_id)
         education_list = [
             Education(
                 id=edu.id,
                 university=edu.university,
                 specialty=edu.specialty,
-                degree=Degree(edu.degree),  # Конвертируем строку в enum
+                degree=Degree(edu.degree),
                 graduation_year=edu.graduation_year,
             )
             for edu in educations
@@ -64,7 +73,7 @@ class UserService:
             first_name=user.first_name,
             last_name=user.last_name,
             middle_name=user.middle_name,
-            avatar_url=user.avatar_url,
+            avatar_url=avatar_url,
             position=user.position,
             about=user.about,
             looking_for_projects=user.looking_for_projects,
@@ -158,3 +167,7 @@ class UserService:
             model_id=target_user_id, return_model=False, user_type=type_model
         )
         return await self.get_profile(user_id=target_user_id)
+
+    async def set_avatar_key(self, user_id: UUID, object_key: str) -> UserProfileResponse:
+        await self._store.user.update(model_id=user_id, return_model=False, avatar_key=object_key)
+        return await self.get_profile(user_id=user_id)

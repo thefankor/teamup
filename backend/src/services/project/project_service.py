@@ -18,7 +18,7 @@ from src.schemas.project import (
     ProjectMember,
     ProjectsPage,
     ProjectStatus,
-    ProjectUpdate,
+    ProjectUpdate, ProjectSortField, SortOrder,
 )
 from src.schemas.project import (
     Project as ProjectSchema,
@@ -161,12 +161,14 @@ class ProjectService:
         q: str | None = None,
         role: str | None = None,
         level: str | None = None,
+        sort_by: ProjectSortField = ProjectSortField.created_at,
+        order: SortOrder = SortOrder.desc,
         limit: int = 20,
         offset: int = 0,
     ) -> ProjectsPage:
         """Получает список открытых проектов с фильтрацией."""
         projects = await self._store.project.find_open_projects(
-            q=q, role=role, level=level, limit=limit, offset=offset
+            q=q, role=role, level=level, sort_by=sort_by, order=order, limit=limit, offset=offset
         )
 
         items = [
