@@ -5,7 +5,8 @@ from src.core.dependencies import require_permission
 from src.core.permissions import (
     PROFILE_READ_OWN,
     PROFILE_UPDATE_OWN,
-    USERS_MANAGE_USER_TYPES, USERS_GET_PROFILES,
+    USERS_GET_PROFILES,
+    USERS_MANAGE_USER_TYPES,
 )
 from src.schemas.user import (
     ContactInfo,
