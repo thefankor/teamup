@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from src.core.wrapper import handle_db_errors
@@ -46,3 +48,9 @@ class UserDAO(BaseDAO):
             return user_id
 
         return user.id
+
+    @handle_db_errors
+    async def get_avatar_key_by_id(self, model_id: UUID):
+        query = select(self.model.avatar_key).filter_by(id=model_id)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()

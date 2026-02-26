@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from src.core.dependencies import get_store
 from src.core.exceptions import NotFoundException
 from src.crud import Store
@@ -11,6 +11,7 @@ from src.schemas.user import (
     EducationCreate,
     EducationUpdate,
     ProfileCoreUpdate,
+    UserAvatarUploadResponse,
     UserProfileResponse,
     UserTypeEnum,
 )
@@ -165,10 +166,49 @@ class UserService:
         )
         return await self.get_profile(user_id=target_user_id)
 
+    async def generate_presigned_upload_url(
+        self, user_id: UUID, content_type: str
+    ) -> UserAvatarUploadResponse:
+        upload_url, object_key = await self._s3.generate_presigned_upload_url(
+            user_id=str(user_id),
+            content_type=content_type,
+        )
+        return UserAvatarUploadResponse(
+            upload_url=upload_url,
+            object_key=object_key,
+        )
+
     async def set_avatar_key(
         self, user_id: UUID, object_key: str
     ) -> UserProfileResponse:
+        exist_avatar_key = await self._store.user.get_avatar_key_by_id(model_id=user_id)
+
+        if exist_avatar_key:
+            try:
+                await self._s3.delete_object(key=exist_avatar_key)
+            except Exception:
+                raise HTTPException(
+                    status_code=502, detail="Не удалось удалить файл из S3"
+                )
+
         await self._store.user.update(
             model_id=user_id, return_model=False, avatar_key=object_key
         )
         return await self.get_profile(user_id=user_id)
+
+    async def delete_avatar(self, user_id: UUID):
+        user = await self._store.user.find_by_id(model_id=user_id)
+        if not user.avatar_key:
+            return
+
+        key = user.avatar_key
+
+        try:
+            await self._s3.delete_object(key=key)
+        except Exception:
+            raise HTTPException(status_code=502, detail="Не удалось удалить файл из S3")
+
+        await self._store.user.update(
+            model_id=user_id, return_model=False, avatar_key=None
+        )
+        return

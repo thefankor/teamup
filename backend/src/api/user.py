@@ -20,7 +20,6 @@ from src.schemas.user import (
     UserProfileResponse,
 )
 from src.services.user import UserService
-from src.utils.s3_service import S3Service
 from starlette import status
 
 router = APIRouter(tags=["User"])
@@ -100,16 +99,11 @@ async def update_core(
 async def get_avatar_upload_url(
     content_type: str,
     current_user_id: UUID = _current_user_id_update(),
-    s3: S3Service = Depends(),
+    service: UserService = Depends(),
 ):
-    upload_url, object_key = await s3.generate_presigned_upload_url(
+    return await service.generate_presigned_upload_url(
         user_id=str(current_user_id),
         content_type=content_type,
-    )
-
-    return UserAvatarUploadResponse(
-        upload_url=upload_url,
-        object_key=object_key,
     )
 
 
@@ -121,6 +115,14 @@ async def confirm_avatar(
 ):
     user = await service.set_avatar_key(user_id=current_user_id, object_key=object_key)
     return user
+
+
+@router.delete("/avatar", status_code=204)
+async def delete_avatar(
+    current_user_id: UUID = _current_user_id_update(),
+    service: UserService = Depends(),
+):
+    await service.delete_avatar(user_id=current_user_id)
 
 
 @router.patch("/contacts", response_model=UserProfileResponse)

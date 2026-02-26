@@ -89,3 +89,9 @@ class S3Service:
             )
 
         return await anyio.to_thread.run_sync(_sync)
+
+    async def delete_object(self, *, key: str) -> None:
+        def _sync():
+            self._client.delete_object(Bucket=self.bucket, Key=key)
+
+        await anyio.to_thread.run_sync(_sync)
