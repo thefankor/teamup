@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ProjectCard } from '../../../components/projectCard/ProjectCard';
 import { projectsAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
 import style from './Search.module.scss';
 
 export default function Search() {
@@ -110,8 +111,18 @@ export default function Search() {
     );
 
     return (
-        <div className={style.searchPage}>
-            <div className={style.container}>
+        <>
+            <SeoMeta
+                title={query ? `Поиск проектов: ${query}` : 'Поиск проектов'}
+                description={
+                    query
+                        ? `Актуальные проекты по запросу "${query}" с фильтрами по позиции и уровню.`
+                        : 'Каталог открытых проектов с фильтрами по ролям, уровню и сортировке.'
+                }
+                canonicalPath="/search"
+            />
+            <div className={style.searchPage}>
+                <div className={style.container}>
                 <h1 className={style.title}>
                     Открытые проекты по запросу: {query || 'все проекты'}
                 </h1>
@@ -357,7 +368,8 @@ export default function Search() {
                         )}
                     </>
                 )}
+                </div>
             </div>
-        </div>
+        </>
     );
 }

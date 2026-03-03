@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { routePaths } from '../../src/app/routes';
 import style from './style.module.scss';
 
 export const ProjectCard = ({ project }) => {
@@ -24,7 +25,7 @@ export const ProjectCard = ({ project }) => {
     };
 
     return (
-        <div className={style.card}>
+        <article className={style.card}>
             <div className={style.content}>
                 <h3 className={style.title}>{project.title}</h3>
                 <p className={style.description}>{project.excerpt || project.description || ''}</p>
@@ -46,14 +47,13 @@ export const ProjectCard = ({ project }) => {
                         {formatDate(project.created_at)}
                     </span>
                     <Link 
-                        to={`/project/${project.id}`} 
+                        to={routePaths.projectDetails(project.id)}
                         className={style.applyButton}
                     >
                         Откликнуться
                     </Link>
                 </div>
             </div>
-        </div>
+        </article>
     );
 }
-

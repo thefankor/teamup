@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { projectsAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { ROUTES } from '../../app/routes';
 import { ProjectCard } from '../../../components/projectCard/ProjectCard';
 import style from './MyProjects.module.scss';
 
@@ -84,10 +86,16 @@ export default function MyProjects() {
 
     return (
         <div className={style.myProjectsPage}>
+            <SeoMeta
+                title="Мои проекты"
+                description="Управление созданными проектами пользователя."
+                canonicalPath={ROUTES.myProjects}
+                noindex
+            />
             <div className={style.container}>
                 <div className={style.header}>
                     <h1 className={style.title}>Мои проекты</h1>
-                    <Link to="/create_project" className={style.createButton}>
+                    <Link to={ROUTES.createProject} className={style.createButton}>
                         Создать проект
                     </Link>
                 </div>
@@ -143,7 +151,7 @@ export default function MyProjects() {
                         {projects.length === 0 && !loading && (
                             <div className={style.emptyState}>
                                 <p>У вас пока нет проектов</p>
-                                <Link to="/create_project" className={style.createLink}>
+                                <Link to={ROUTES.createProject} className={style.createLink}>
                                     Создать первый проект
                                 </Link>
                             </div>

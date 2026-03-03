@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LogoIcon, SearchIcon } from '../../src/components/icons/SimpleIcon';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { RoleGuard } from '../../src/components/ProtectedRoute';
+import { ROUTES } from '../../src/app/routes';
 import style from './style.module.scss';
 
 export const Header = () => {
@@ -15,9 +16,9 @@ export const Header = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            navigate(`${ROUTES.search}?q=${encodeURIComponent(searchQuery.trim())}`);
         } else {
-            navigate('/search');
+            navigate(ROUTES.search);
         }
     };
 
@@ -72,13 +73,13 @@ export const Header = () => {
     const handleLogout = async () => {
         setMenuOpen(false);
         await logout();
-        navigate('/login', { replace: true });
+        navigate(ROUTES.login, { replace: true });
     };
 
     return (
         <header className={style.header}>
             <div className={style.logoContainer}>
-                <Link to="/" className={style.logo}>
+                <Link to={ROUTES.home} className={style.logo}>
                     <LogoIcon width={32} height={32} />
                     <span className={style.logoText}>TeamUp</span>
                 </Link>
@@ -101,16 +102,16 @@ export const Header = () => {
             <div className={style.actions}>
                 {isAuthenticated ? (
                     <>
-                        <Link to="/search" className={style.navLink}>
+                        <Link to={ROUTES.search} className={style.navLink}>
                             Поиск
                         </Link>
-                        <Link to="/my_projects" className={style.navLink}>
+                        <Link to={ROUTES.myProjects} className={style.navLink}>
                             Мои проекты
                         </Link>
-                        <Link to="/create_project" className={style.navLink}>
+                        <Link to={ROUTES.createProject} className={style.navLink}>
                             Создать проект
                         </Link>
-                        <Link to="/notifications" className={style.iconButton} aria-label="Уведомления">
+                        <Link to={ROUTES.notifications} className={style.iconButton} aria-label="Уведомления">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                 <path d="M10 2C8.89543 2 8 2.89543 8 4V5.5C8 6.32843 7.32843 7 6.5 7H4C3.44772 7 3 7.44772 3 8V15C3 15.5523 3.44772 16 4 16H16C16.5523 16 17 15.5523 17 15V8C17 7.44772 16.5523 7 16 7H13.5C12.6716 7 12 6.32843 12 5.5V4C12 2.89543 11.1046 2 10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 <path d="M7 16V17C7 18.1046 7.89543 19 9 19H11C12.1046 19 13 18.1046 13 17V16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -125,7 +126,15 @@ export const Header = () => {
                                 onClick={() => setMenuOpen((prev) => !prev)}
                             >
                                 {user?.avatar_url ? (
-                                    <img src={user.avatar_url} alt="Avatar" className={style.userAvatar} />
+                                    <img
+                                        src={user.avatar_url}
+                                        alt="Аватар пользователя"
+                                        className={style.userAvatar}
+                                        width="40"
+                                        height="40"
+                                        loading="lazy"
+                                        decoding="async"
+                                    />
                                 ) : (
                                     <div className={style.userAvatarPlaceholder}>
                                         {getUserInitials()}
@@ -143,7 +152,7 @@ export const Header = () => {
                                     </div>
 
                                     <Link
-                                        to="/profile"
+                                        to={ROUTES.profile}
                                         className={style.dropdownAction}
                                         role="menuitem"
                                         onClick={() => setMenuOpen(false)}
@@ -166,13 +175,13 @@ export const Header = () => {
                     </>
                 ) : (
                     <>
-                        <Link to="/login" className={style.loginButton}>
+                        <Link to={ROUTES.login} className={style.loginButton}>
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                 <path d="M10 2C8.89543 2 8 2.89543 8 4V5.5C8 6.32843 7.32843 7 6.5 7H4C3.44772 7 3 7.44772 3 8V15C3 15.5523 3.44772 16 4 16H16C16.5523 16 17 15.5523 17 15V8C17 7.44772 16.5523 7 16 7H13.5C12.6716 7 12 6.32843 12 5.5V4C12 2.89543 11.1046 2 10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             Войти
                         </Link>
-                        <Link to="/login?register=true" className={style.registerButton}>
+                        <Link to={`${ROUTES.login}?register=true`} className={style.registerButton}>
                             Создать аккаунт
                         </Link>
                     </>

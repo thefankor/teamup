@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     S3_MAX_FILE_SIZE: int = 15 * 1024 * 1024
     S3_ALLOWED_MIME: str = "image/jpeg,image/png,image/webp"
 
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASS: str
+
     class Config:
         env_file = ".env"
         extra = "allow"

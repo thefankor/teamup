@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ROUTES } from '../../src/app/routes';
 import style from './style.module.scss';
 
 export const Hero = () => {
@@ -12,10 +13,10 @@ export const Hero = () => {
                     Размещайте идеи, ищите единомышленников, присоединяйтесь к командам
                 </p>
                 <div className={style.actions}>
-                    <Link to="/search" className={style.primaryButton}>
+                    <Link to={ROUTES.search} className={style.primaryButton}>
                         Найти команду →
                     </Link>
-                    <Link to="/create_project" className={style.secondaryButton}>
+                    <Link to={ROUTES.createProject} className={style.secondaryButton}>
                         Поиск участников
                     </Link>
                 </div>
@@ -23,4 +24,3 @@ export const Hero = () => {
         </section>
     );
 }
-

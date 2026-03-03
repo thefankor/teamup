@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { routePaths } from '../../app/routes';
 import style from './Notifications.module.scss';
 
 export default function Notifications() {
@@ -62,6 +64,12 @@ export default function Notifications() {
 
     return (
         <div className={style.notificationsPage}>
+            <SeoMeta
+                title="Уведомления"
+                description="Личные уведомления пользователя TeamUp."
+                canonicalPath="/notifications"
+                noindex
+            />
             <div className={style.container}>
                 <h1 className={style.title}>Уведомления</h1>
                 
@@ -76,7 +84,7 @@ export default function Notifications() {
                                 <p className={style.notificationText}>
                                     {notification.message}{' '}
                                     <Link 
-                                        to={`/project/${notification.projectId}`}
+                                        to={routePaths.projectDetails(notification.projectId)}
                                         className={style.projectLink}
                                         onClick={(e) => e.stopPropagation()}
                                     >

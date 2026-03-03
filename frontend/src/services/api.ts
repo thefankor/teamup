@@ -331,6 +331,55 @@ const buildQuery = (params: Record<string, unknown> = {}) => {
     ).toString();
 };
 
+interface CachedEntry {
+    value: unknown;
+    expiresAt: number;
+}
+
+const GET_CACHE_TTL_MS = 20_000;
+const getCache = new Map<string, CachedEntry>();
+const inFlightGetRequests = new Map<string, Promise<unknown>>();
+
+const makeGetKey = (endpoint: string, token: string | null) =>
+    `${token || 'anonymous'}::${endpoint}`;
+
+const cachedGetRequest = async <T>(endpoint: string, ttlMs = GET_CACHE_TTL_MS): Promise<T> => {
+    const client = new ApiClient();
+    const cacheKey = makeGetKey(endpoint, client.getAccessToken());
+    const now = Date.now();
+    const cached = getCache.get(cacheKey);
+
+    if (cached && cached.expiresAt > now) {
+        return cached.value as T;
+    }
+
+    const pending = inFlightGetRequests.get(cacheKey);
+    if (pending) {
+        return pending as Promise<T>;
+    }
+
+    const requestPromise = client.get<T>(endpoint).then((data) => {
+        getCache.set(cacheKey, {
+            value: data,
+            expiresAt: now + ttlMs,
+        });
+        return data;
+    }).finally(() => {
+        inFlightGetRequests.delete(cacheKey);
+    });
+
+    inFlightGetRequests.set(cacheKey, requestPromise);
+    return requestPromise;
+};
+
+const clearProjectsCache = () => {
+    for (const key of getCache.keys()) {
+        if (key.includes('::/projects')) {
+            getCache.delete(key);
+        }
+    }
+};
+
 export const authAPI = {
     login: async (email: string) => {
         const client = new ApiClient();
@@ -440,29 +489,33 @@ export const userAPI = {
 
 export const projectsAPI = {
     list: async (params: Record<string, unknown> = {}) => {
-        const client = new ApiClient();
         const queryParams = buildQuery(params);
-        return client.get(`/projects${queryParams ? `?${queryParams}` : ''}`);
+        return cachedGetRequest(`/projects${queryParams ? `?${queryParams}` : ''}`);
     },
 
     get: async (projectId: string) => {
-        const client = new ApiClient();
-        return client.get(`/projects/${projectId}`);
+        return cachedGetRequest(`/projects/${projectId}`);
     },
 
     create: async (data: unknown) => {
         const client = new ApiClient();
-        return client.post('/projects', data);
+        const result = await client.post('/projects', data);
+        clearProjectsCache();
+        return result;
     },
 
     update: async (projectId: string, data: unknown) => {
         const client = new ApiClient();
-        return client.patch(`/projects/${projectId}`, data);
+        const result = await client.patch(`/projects/${projectId}`, data);
+        clearProjectsCache();
+        return result;
     },
 
     delete: async (projectId: string) => {
         const client = new ApiClient();
-        return client.delete(`/projects/${projectId}`);
+        const result = await client.delete(`/projects/${projectId}`);
+        clearProjectsCache();
+        return result;
     },
 
     myProjects: async (params: Record<string, unknown> = {}) => {
@@ -479,17 +532,23 @@ export const projectsAPI = {
 
     setStatus: async (projectId: string, status: string) => {
         const client = new ApiClient();
-        return client.put(`/projects/${projectId}/status/${status}`);
+        const result = await client.put(`/projects/${projectId}/status/${status}`);
+        clearProjectsCache();
+        return result;
     },
 
     submitApplication: async (projectId: string, data: unknown) => {
         const client = new ApiClient();
-        return client.post(`/projects/${projectId}/applications`, data);
+        const result = await client.post(`/projects/${projectId}/applications`, data);
+        clearProjectsCache();
+        return result;
     },
 
     withdrawApplication: async (projectId: string, applicationId: string) => {
         const client = new ApiClient();
-        return client.post(`/projects/${projectId}/applications/${applicationId}/withdraw`);
+        const result = await client.post(`/projects/${projectId}/applications/${applicationId}/withdraw`);
+        clearProjectsCache();
+        return result;
     },
 
     listApplications: async (projectId: string, params: Record<string, unknown> = {}) => {
@@ -502,7 +561,9 @@ export const projectsAPI = {
 
     decideApplication: async (projectId: string, applicationId: string, data: unknown) => {
         const client = new ApiClient();
-        return client.post(`/projects/${projectId}/applications/${applicationId}/decision`, data);
+        const result = await client.post(`/projects/${projectId}/applications/${applicationId}/decision`, data);
+        clearProjectsCache();
+        return result;
     },
 };
 

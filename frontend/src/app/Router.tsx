@@ -1,17 +1,30 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Layout } from '../components/layout/Layout'
 import { ProtectedRoute } from '../components/ProtectedRoute'
 import { useAuth } from '../contexts/AuthContext'
-import App from '../pages/ui/App'
-import Notifications from '../pages/ui/Notifications'
-import Profile from '../pages/ui/Profile'
-import UserProfile from '../pages/ui/UserProfile'
-import Project from '../pages/ui/Project'
-import Auth from '../pages/ui/Auth'
-import MyProjects from '../pages/ui/MyProjects'
-import AddProject from '../pages/ui/AddProject'
-import Search from '../pages/ui/Search'
-import Responses from '../pages/ui/Responses'
+import { ROUTES } from './routes'
+
+const App = lazy(() => import('../pages/ui/App'))
+const Notifications = lazy(() => import('../pages/ui/Notifications'))
+const Profile = lazy(() => import('../pages/ui/Profile'))
+const UserProfile = lazy(() => import('../pages/ui/UserProfile'))
+const Project = lazy(() => import('../pages/ui/Project'))
+const Auth = lazy(() => import('../pages/ui/Auth'))
+const MyProjects = lazy(() => import('../pages/ui/MyProjects'))
+const AddProject = lazy(() => import('../pages/ui/AddProject'))
+const Search = lazy(() => import('../pages/ui/Search'))
+const Responses = lazy(() => import('../pages/ui/Responses'))
+
+function LegacyProjectRedirect() {
+    const { id } = useParams();
+    return <Navigate to={`/projects/${id}`} replace />;
+}
+
+function LegacyProjectResponsesRedirect() {
+    const { id } = useParams();
+    return <Navigate to={`/projects/${id}/responses`} replace />;
+}
 
 function RouterContent() {
     const { loading } = useAuth();
@@ -32,60 +45,67 @@ function RouterContent() {
     }
 
     return (
-        <Routes>
-            <Route path="/login" element={<Auth />} />
-            <Route path="/" element={<Layout><App /></Layout>} />
-            <Route path="/search" element={<Layout><Search /></Layout>} />
-            <Route
-                path="/notifications"
-                element={
-                    <ProtectedRoute>
-                        <Layout><Notifications /></Layout>
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/profile"
-                element={
-                    <ProtectedRoute>
-                        <Layout><Profile /></Layout>
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/user/:userId"
-                element={
-                    <ProtectedRoute>
-                        <Layout><UserProfile /></Layout>
-                    </ProtectedRoute>
-                }
-            />
-            <Route path="/project/:id" element={<Layout><Project /></Layout>} />
-            <Route
-                path="/project/:id/responses"
-                element={
-                    <ProtectedRoute>
-                        <Layout><Responses /></Layout>
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/my_projects"
-                element={
-                    <ProtectedRoute>
-                        <Layout><MyProjects /></Layout>
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/create_project"
-                element={
-                    <ProtectedRoute>
-                        <Layout><AddProject /></Layout>
-                    </ProtectedRoute>
-                }
-            />
-        </Routes>
+        <Suspense fallback={<div style={{ padding: '24px', textAlign: 'center' }}>Загрузка...</div>}>
+            <Routes>
+                <Route path={ROUTES.login} element={<Auth />} />
+                <Route path={ROUTES.home} element={<Layout><App /></Layout>} />
+                <Route path={ROUTES.search} element={<Layout><Search /></Layout>} />
+                <Route
+                    path={ROUTES.notifications}
+                    element={
+                        <ProtectedRoute>
+                            <Layout><Notifications /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path={ROUTES.profile}
+                    element={
+                        <ProtectedRoute>
+                            <Layout><Profile /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path={ROUTES.userProfile}
+                    element={
+                        <ProtectedRoute>
+                            <Layout><UserProfile /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route path={ROUTES.projectDetails} element={<Layout><Project /></Layout>} />
+                <Route
+                    path={ROUTES.projectResponses}
+                    element={
+                        <ProtectedRoute>
+                            <Layout><Responses /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path={ROUTES.myProjects}
+                    element={
+                        <ProtectedRoute>
+                            <Layout><MyProjects /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path={ROUTES.createProject}
+                    element={
+                        <ProtectedRoute>
+                            <Layout><AddProject /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route path="/project/:id" element={<LegacyProjectRedirect />} />
+                <Route path="/project/:id/responses" element={<LegacyProjectResponsesRedirect />} />
+                <Route path="/my_projects" element={<Navigate to={ROUTES.myProjects} replace />} />
+                <Route path="/create_project" element={<Navigate to={ROUTES.createProject} replace />} />
+            </Routes>
+        </Suspense>
     );
 }
 

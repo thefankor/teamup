@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Private/service pages
+Disallow: /login
+Disallow: /profile
+Disallow: /notifications
+Disallow: /user/
+Disallow: /my-projects
+Disallow: /projects/new
+Disallow: /projects/*/responses
+Disallow: /my_projects
+Disallow: /create_project
+Disallow: /project/*/responses

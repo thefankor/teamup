@@ -10,6 +10,8 @@ import {
 } from '../../components/icons/ContactIcons';
 import { useAuth } from '../../contexts/AuthContext';
 import { userAPI, projectsAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { ROUTES, routePaths } from '../../app/routes';
 import style from './Profile.module.scss';
 
 export default function Profile() {
@@ -24,7 +26,7 @@ export default function Profile() {
     // Перенаправляем, если не авторизован
     useEffect(() => {
         if (!isAuthenticated && !loading) {
-            navigate('/login');
+            navigate(ROUTES.login);
         }
     }, [isAuthenticated, loading, navigate]);
 
@@ -157,11 +159,11 @@ export default function Profile() {
         }
     };
 
-    const handleAddEducation = async () => {
+    const _handleAddEducation = async () => {
         // TODO: Добавить модальное окно для добавления образования
     };
 
-    const handleUpdateEducation = async (eduId, data) => {
+    const _handleUpdateEducation = async (eduId, data) => {
         try {
             await userAPI.updateEducation(eduId, {
                 university: data.university,
@@ -261,6 +263,12 @@ export default function Profile() {
 
     return (
         <div className={style.profilePage}>
+            <SeoMeta
+                title="Профиль"
+                description="Личный кабинет пользователя TeamUp."
+                canonicalPath={ROUTES.profile}
+                noindex
+            />
             {error && <div className={style.error}>{error}</div>}
             <div className={style.container}>
                 {/* Основная информация */}
@@ -281,7 +289,15 @@ export default function Profile() {
                     <div className={style.profileHeader}>
                         <div className={style.avatarSection}>
                             {profile.avatar ? (
-                                <img src={profile.avatar} alt={profile.firstName} className={style.avatar} />
+                                <img
+                                    src={profile.avatar}
+                                    alt={`Аватар пользователя ${profile.firstName || ''}`.trim()}
+                                    className={style.avatar}
+                                    width="120"
+                                    height="120"
+                                    loading="lazy"
+                                    decoding="async"
+                                />
                             ) : (
                                 <div className={style.avatarPlaceholder}>
                                     {profile.firstName && profile.lastName
@@ -478,7 +494,7 @@ export default function Profile() {
                                 {participatingProjects.map((project) => (
                                     <Link
                                         key={project.id}
-                                        to={`/project/${project.id}`}
+                                        to={routePaths.projectDetails(project.id)}
                                         className={style.projectCard}
                                     >
                                         <h4 className={style.projectCardTitle}>{project.title}</h4>
