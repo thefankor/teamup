@@ -4,6 +4,9 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     PUBLIC_SITE_URL: str = "http://localhost:3000"
     PUBLIC_API_URL: str = "http://localhost:8000"
+    GITHUB_API_URL: str = "https://api.github.com"
+    GITHUB_TOKEN: str | None = None
+    GITHUB_TIMEOUT_SECONDS: float = 5.0
 
     POSTGRES_HOST: str
     POSTGRES_DB: str
