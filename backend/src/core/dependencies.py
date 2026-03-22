@@ -1,11 +1,13 @@
 from typing import Callable
 from uuid import UUID
 
+import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.auth import TokenService
 from src.core.db.database import get_async_db
+from src.config import settings
 from src.core.exceptions import ForbiddenException
 from src.core.permissions import has_permission
 from src.crud import Store
@@ -16,6 +18,12 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 def get_store(session: AsyncSession = Depends(get_async_db)) -> Store:
     return Store(session=session)
+
+
+async def get_httpx_client():
+    timeout = httpx.Timeout(settings.GITHUB_TIMEOUT_SECONDS)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        yield client
 
 
 async def check_token_dependency(

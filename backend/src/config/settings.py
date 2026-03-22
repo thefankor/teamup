@@ -2,6 +2,12 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    PUBLIC_SITE_URL: str = "http://localhost:3000"
+    PUBLIC_API_URL: str = "http://localhost:8000"
+    GITHUB_API_URL: str = "https://api.github.com"
+    GITHUB_TOKEN: str | None = None
+    GITHUB_TIMEOUT_SECONDS: float = 5.0
+
     POSTGRES_HOST: str
     POSTGRES_DB: str
     POSTGRES_PORT: str = 5432
@@ -27,6 +33,11 @@ class Settings(BaseSettings):
 
     S3_MAX_FILE_SIZE: int = 15 * 1024 * 1024
     S3_ALLOWED_MIME: str = "image/jpeg,image/png,image/webp"
+
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASS: str
 
     class Config:
         env_file = ".env"

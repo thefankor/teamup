@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header } from '../../../components/header/Header';
 import { useAuth } from '../../contexts/AuthContext';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { ROUTES } from '../../app/routes';
 import style from './Auth.module.scss';
 
 export default function Auth() {
@@ -10,7 +12,7 @@ export default function Auth() {
     const navigate = useNavigate();
     const { sendCode, login, isAuthenticated } = useAuth();
     const isRegister = searchParams.get('register') === 'true';
-    const redirectTo = location.state?.from || '/';
+    const redirectTo = location.state?.from || ROUTES.home;
     
     const [step, setStep] = useState(1); // 1: email, 2: code
     const [email, setEmail] = useState('');
@@ -115,6 +117,12 @@ export default function Auth() {
 
     return (
         <div className={style.authPage}>
+            <SeoMeta
+                title={isRegister ? 'Регистрация' : 'Вход'}
+                description="Авторизация в TeamUp для доступа к профилю, проектам и откликам."
+                canonicalPath="/login"
+                noindex
+            />
             <Header />
             <div className={style.container}>
                 <div className={style.formWrapper}>

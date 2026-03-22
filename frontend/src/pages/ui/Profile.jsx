@@ -9,7 +9,10 @@ import {
     ContactWhatsappIcon
 } from '../../components/icons/ContactIcons';
 import { useAuth } from '../../contexts/AuthContext';
-import { userAPI, projectsAPI } from '../../services/api';
+import { githubAPI, userAPI, projectsAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { ROUTES, routePaths } from '../../app/routes';
+import { GithubProfileCard } from '../../components/profile/GithubProfileCard';
 import style from './Profile.module.scss';
 
 export default function Profile() {
@@ -20,11 +23,14 @@ export default function Profile() {
     const [avatarUploading, setAvatarUploading] = useState(false);
     const [avatarDeleting, setAvatarDeleting] = useState(false);
     const avatarInputRef = useRef(null);
+    const [githubValidationStatus, setGithubValidationStatus] = useState('idle');
+    const [githubValidationMessage, setGithubValidationMessage] = useState('');
+    const [githubValidatedUsername, setGithubValidatedUsername] = useState('');
 
     // Перенаправляем, если не авторизован
     useEffect(() => {
         if (!isAuthenticated && !loading) {
-            navigate('/login');
+            navigate(ROUTES.login);
         }
     }, [isAuthenticated, loading, navigate]);
 
@@ -102,7 +108,12 @@ export default function Profile() {
                 break;
         }
         setEditData({});
+        setGithubValidationStatus('idle');
+        setGithubValidationMessage('');
+        setGithubValidatedUsername('');
     };
+
+    const normalizeGithubUsername = (value) => value?.replace(/^@/, '').trim() || '';
 
     const handleSave = async (type) => {
         setError('');
@@ -128,14 +139,29 @@ export default function Profile() {
                     });
                     break;
                 case 'contacts':
+                    {
+                        const normalizedGithub = normalizeGithubUsername(editData.contacts?.github);
+
+                        if (normalizedGithub) {
+                            const isValidated =
+                                githubValidationStatus === 'valid'
+                                && githubValidatedUsername === normalizedGithub;
+
+                            if (!isValidated) {
+                                setGithubValidationMessage('Укажите существующий GitHub-профиль.');
+                                return;
+                            }
+                        }
+
                     updatedProfile = await userAPI.updateContacts({
                         phone: editData.contacts?.phone || null,
                         email: editData.contacts?.email || null,
                         tg_username: editData.contacts?.telegram?.replace('@', '') || null,
-                        github_username: editData.contacts?.github?.replace('@', '') || null,
+                        github_username: normalizedGithub || null,
                         vk_username: editData.contacts?.vk?.replace('@', '') || null,
                         whatsapp_username: editData.contacts?.whatsapp?.replace('@', '') || null,
                     });
+                    }
                     break;
                 case 'skills':
                     updatedProfile = await userAPI.updateSkills(editData.skills || []);
@@ -157,11 +183,11 @@ export default function Profile() {
         }
     };
 
-    const handleAddEducation = async () => {
+    const _handleAddEducation = async () => {
         // TODO: Добавить модальное окно для добавления образования
     };
 
-    const handleUpdateEducation = async (eduId, data) => {
+    const _handleUpdateEducation = async (eduId, data) => {
         try {
             await userAPI.updateEducation(eduId, {
                 university: data.university,
@@ -185,6 +211,59 @@ export default function Profile() {
     };
 
     const availableTags = ['Front-end', 'Back-end', 'Designer', 'ML-developer'];
+
+    useEffect(() => {
+        if (!editContacts) {
+            return undefined;
+        }
+
+        const normalizedGithub = normalizeGithubUsername(editData.contacts?.github);
+
+        if (!normalizedGithub) {
+            setGithubValidationStatus('idle');
+            setGithubValidationMessage('');
+            setGithubValidatedUsername('');
+            return undefined;
+        }
+
+        let cancelled = false;
+        setGithubValidationStatus('loading');
+        setGithubValidationMessage('Проверяем GitHub-профиль...');
+
+        const timer = window.setTimeout(async () => {
+            try {
+                await githubAPI.getUserProfile(normalizedGithub);
+
+                if (cancelled) {
+                    return;
+                }
+
+                setGithubValidationStatus('valid');
+                setGithubValidationMessage('GitHub-профиль найден.');
+                setGithubValidatedUsername(normalizedGithub);
+            } catch (err) {
+                if (cancelled) {
+                    return;
+                }
+
+                setGithubValidatedUsername('');
+                setGithubValidationStatus('invalid');
+                if (err?.status === 404) {
+                    setGithubValidationMessage('Такой GitHub-профиль не найден.');
+                } else {
+                    setGithubValidationMessage('Не удалось проверить GitHub сейчас. Попробуйте еще раз.');
+                }
+            }
+        }, 500);
+
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timer);
+        };
+    }, [
+        editContacts,
+        editData.contacts?.github,
+    ]);
 
     const handleAvatarUpload = async (event) => {
         const file = event.target.files?.[0];
@@ -261,6 +340,12 @@ export default function Profile() {
 
     return (
         <div className={style.profilePage}>
+            <SeoMeta
+                title="Профиль"
+                description="Личный кабинет пользователя TeamUp."
+                canonicalPath={ROUTES.profile}
+                noindex
+            />
             {error && <div className={style.error}>{error}</div>}
             <div className={style.container}>
                 {/* Основная информация */}
@@ -281,7 +366,15 @@ export default function Profile() {
                     <div className={style.profileHeader}>
                         <div className={style.avatarSection}>
                             {profile.avatar ? (
-                                <img src={profile.avatar} alt={profile.firstName} className={style.avatar} />
+                                <img
+                                    src={profile.avatar}
+                                    alt={`Аватар пользователя ${profile.firstName || ''}`.trim()}
+                                    className={style.avatar}
+                                    width="120"
+                                    height="120"
+                                    loading="lazy"
+                                    decoding="async"
+                                />
                             ) : (
                                 <div className={style.avatarPlaceholder}>
                                     {profile.firstName && profile.lastName
@@ -427,6 +520,7 @@ export default function Profile() {
                             <span className={style.contactValue}>{profile.contacts.whatsapp}</span>
                         </div>
                     </div>
+                    <GithubProfileCard username={user.contact_info?.github_username} />
                 </div>
 
                 {/* Образование */}
@@ -478,7 +572,7 @@ export default function Profile() {
                                 {participatingProjects.map((project) => (
                                     <Link
                                         key={project.id}
-                                        to={`/project/${project.id}`}
+                                        to={routePaths.projectDetails(project.id)}
                                         className={style.projectCard}
                                     >
                                         <h4 className={style.projectCardTitle}>{project.title}</h4>
@@ -641,6 +735,16 @@ export default function Profile() {
                     title="Контактная информация"
                     onClose={() => closeEditModal('contacts')}
                     onSave={() => handleSave('contacts')}
+                    saveDisabled={
+                        githubValidationStatus === 'loading'
+                        || (
+                            normalizeGithubUsername(editData.contacts?.github)
+                            && (
+                                githubValidationStatus !== 'valid'
+                                || githubValidatedUsername !== normalizeGithubUsername(editData.contacts?.github)
+                            )
+                        )
+                    }
                 >
                     <div className={style.modalForm}>
                         <label className={style.modalLabel}>Телефон</label>
@@ -669,8 +773,24 @@ export default function Profile() {
                             type="text"
                             className={style.modalInput}
                             value={editData.contacts?.github || ''}
-                            onChange={(e) => setEditData({ ...editData, contacts: { ...editData.contacts, github: e.target.value } })}
+                            onChange={(e) => {
+                                setGithubValidationStatus('idle');
+                                setGithubValidationMessage('');
+                                setGithubValidatedUsername('');
+                                setEditData({ ...editData, contacts: { ...editData.contacts, github: e.target.value } });
+                            }}
                         />
+                        {githubValidationMessage && (
+                            <p
+                                className={
+                                    githubValidationStatus === 'invalid'
+                                        ? style.modalFieldError
+                                        : style.modalFieldHint
+                                }
+                            >
+                                {githubValidationMessage}
+                            </p>
+                        )}
                         <label className={style.modalLabel}>VK</label>
                         <input
                             type="text"
@@ -753,7 +873,7 @@ export default function Profile() {
 }
 
 // Компонент модального окна
-function Modal({ title, children, onClose, onSave }) {
+function Modal({ title, children, onClose, onSave, saveDisabled = false }) {
     return (
         <div className={style.modalOverlay} onClick={onClose}>
             <div className={style.modal} onClick={(e) => e.stopPropagation()}>
@@ -772,7 +892,11 @@ function Modal({ title, children, onClose, onSave }) {
                     <button className={style.modalCancelButton} onClick={onClose}>
                         Отмена
                     </button>
-                    <button className={style.modalSaveButton} onClick={onSave}>
+                    <button
+                        className={style.modalSaveButton}
+                        onClick={onSave}
+                        disabled={saveDisabled}
+                    >
                         Отправить
                     </button>
                 </div>

@@ -56,7 +56,13 @@ async def list_open_projects(
     )
 
 
-@router.get("/{project_id}", response_model=Project)
+@router.get(
+    "/{project_id}",
+    response_model=Project,
+    responses={
+        404: {"description": "Проект не найден"},
+    },
+)
 async def get_project(
     project_id: UUID,
     service: ProjectService = Depends(),
@@ -99,7 +105,14 @@ async def create_project(
     return await service.create_project(user_id=current_user_id, data=payload)
 
 
-@router.patch("/{project_id}", response_model=Project)
+@router.patch(
+    "/{project_id}",
+    response_model=Project,
+    responses={
+        403: {"description": "Нет доступа к изменению проекта"},
+        404: {"description": "Проект не найден"},
+    },
+)
 async def update_project(
     project_id: UUID,
     payload: ProjectUpdate,
@@ -111,7 +124,14 @@ async def update_project(
     )
 
 
-@router.put("/{project_id}/status/{status}", response_model=Project)
+@router.put(
+    "/{project_id}/status/{status}",
+    response_model=Project,
+    responses={
+        403: {"description": "Нет доступа к изменению статуса проекта"},
+        404: {"description": "Проект не найден"},
+    },
+)
 async def set_status(
     project_id: UUID,
     status: ProjectStatus,
@@ -123,7 +143,14 @@ async def set_status(
     )
 
 
-@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{project_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        403: {"description": "Нет доступа к удалению проекта"},
+        404: {"description": "Проект не найден"},
+    },
+)
 async def delete_project(
     project_id: UUID,
     current_user_id: UUID = Depends(require_permission(PROJECTS_DELETE_OWN)),
@@ -162,7 +189,14 @@ async def withdraw_application(
     )
 
 
-@router.get("/{project_id}/applications", response_model=ApplicationsPage)
+@router.get(
+    "/{project_id}/applications",
+    response_model=ApplicationsPage,
+    responses={
+        403: {"description": "Нет доступа к заявкам проекта"},
+        404: {"description": "Проект не найден"},
+    },
+)
 async def list_applications(
     project_id: UUID,
     status_filter: ApplicationStatus | None = None,
@@ -183,7 +217,12 @@ async def list_applications(
 
 
 @router.post(
-    "/{project_id}/applications/{application_id}/decision", response_model=Application
+    "/{project_id}/applications/{application_id}/decision",
+    response_model=Application,
+    responses={
+        403: {"description": "Нет доступа к заявкам проекта"},
+        404: {"description": "Проект или заявка не найдены"},
+    },
 )
 async def decide_application(
     project_id: UUID,

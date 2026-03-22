@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { userAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { ROUTES, routePaths } from '../../app/routes';
+import { GithubProfileCard } from '../../components/profile/GithubProfileCard';
 import style from './Profile.module.scss';
 
 export default function UserProfile() {
@@ -17,7 +20,7 @@ export default function UserProfile() {
 
     useEffect(() => {
         if (!isAuthenticated && !authLoading) {
-            navigate('/login');
+            navigate(ROUTES.login);
             return;
         }
     }, [isAuthenticated, authLoading, navigate]);
@@ -28,7 +31,7 @@ export default function UserProfile() {
             return;
         }
         if (userId === currentUser.id) {
-            navigate('/profile', { replace: true });
+            navigate(ROUTES.profile, { replace: true });
             return;
         }
         const load = async () => {
@@ -76,11 +79,17 @@ export default function UserProfile() {
     if (noAccess) {
         return (
             <div className={style.profilePage} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                <SeoMeta
+                    title="Профиль пользователя"
+                    description="Просмотр профиля пользователя."
+                    canonicalPath={routePaths.userProfile(userId)}
+                    noindex
+                />
                 <div className={style.container} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth: '480px' }}>
                     <div className={style.card} style={{ textAlign: 'center', padding: '48px 24px', width: '100%' }}>
                         <h2 className={style.name} style={{ marginBottom: '16px' }}>У вас нет доступа к этой странице</h2>
                         <p className={style.description}>Просматривать чужие профили могут только администраторы.</p>
-                        <Link to="/" className={style.modalSaveButton} style={{ display: 'inline-block', marginTop: '24px', textDecoration: 'none' }}>
+                        <Link to={ROUTES.home} className={style.modalSaveButton} style={{ display: 'inline-block', marginTop: '24px', textDecoration: 'none' }}>
                             На главную
                         </Link>
                     </div>
@@ -121,6 +130,12 @@ export default function UserProfile() {
 
     return (
         <div className={style.profilePage}>
+            <SeoMeta
+                title={`Профиль: ${p.firstName} ${p.lastName}`.trim()}
+                description="Публичный просмотр пользовательского профиля (доступ только для администраторов)."
+                canonicalPath={routePaths.userProfile(userId)}
+                noindex
+            />
             <div className={style.container}>
                 {error && <div className={style.error}>{error}</div>}
 
@@ -161,7 +176,15 @@ export default function UserProfile() {
                 <div className={style.card}>
                     <div className={style.profileHeader}>
                         {profile.avatar_url ? (
-                            <img src={profile.avatar_url} alt="" className={style.avatar} />
+                            <img
+                                src={profile.avatar_url}
+                                alt={`Аватар пользователя ${p.firstName} ${p.lastName}`.trim()}
+                                className={style.avatar}
+                                width="120"
+                                height="120"
+                                loading="lazy"
+                                decoding="async"
+                            />
                         ) : (
                             <div className={style.avatarPlaceholder}>
                                 {p.firstName && p.lastName
@@ -209,6 +232,7 @@ export default function UserProfile() {
                             <span className={style.contactValue}>{p.contacts.email || '—'}</span>
                         </div>
                     </div>
+                    <GithubProfileCard username={p.contacts.github_username} />
                 </div>
 
                 <div className={style.card}>

@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import Depends
 from src.core.dependencies import get_store
-from src.core.exceptions import NotFoundException
+from src.core.exceptions import ForbiddenException, NotFoundException
 from src.crud import Store
 from src.models import Project
 from src.models.enums import ApplicationStatus as ModelApplicationStatus
@@ -320,7 +320,7 @@ class ProjectService:
         project = await self._get_project_with_relations(project_id)
 
         if project.owner_id != user_id:
-            raise NotFoundException
+            raise ForbiddenException(detail="Нет доступа к изменению этого проекта")
 
         update_data = data.model_dump(exclude_unset=True)
         if "status" in update_data:
@@ -342,7 +342,7 @@ class ProjectService:
         project = await self._get_project_with_relations(project_id)
 
         if project.owner_id != user_id:
-            raise NotFoundException
+            raise ForbiddenException(detail="Нет доступа к изменению статуса этого проекта")
 
         is_open = self._schema_status_to_model(status)
         await self._store.project.update(
@@ -357,7 +357,7 @@ class ProjectService:
         project = await self._get_project_with_relations(project_id)
 
         if project.owner_id != user_id:
-            raise NotFoundException
+            raise ForbiddenException(detail="Нет доступа к удалению этого проекта")
 
         await self._store.project.delete(model_id=project_id)
 
@@ -439,7 +439,7 @@ class ProjectService:
         """Получает список заявок на проект. Только владелец."""
         project = await self._get_project_with_relations(project_id)
         if project.owner_id != user_id:
-            raise NotFoundException
+            raise ForbiddenException(detail="Нет доступа к заявкам этого проекта")
 
         model_status = None
         if status_filter:
@@ -481,7 +481,7 @@ class ProjectService:
         """Принимает решение по заявке. Только владелец."""
         project = await self._get_project_with_relations(project_id)
         if project.owner_id != user_id:
-            raise NotFoundException
+            raise ForbiddenException(detail="Нет доступа к заявкам этого проекта")
 
         application = await self._store.project_application.find_one_or_none(
             id=application_id, project_id=project_id

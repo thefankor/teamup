@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { projectsAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { StructuredData } from '../../components/seo/StructuredData';
+import { ROUTES, routePaths } from '../../app/routes';
 import style from './Project.module.scss';
 
 export default function Project() {
@@ -92,7 +95,7 @@ export default function Project() {
     const handleSubmitApplication = async (e) => {
         e.preventDefault();
         if (!isAuthenticated) {
-            navigate('/login');
+            navigate(ROUTES.login);
             return;
         }
 
@@ -130,6 +133,7 @@ export default function Project() {
     if (loading) {
         return (
             <div className={style.projectPage}>
+                <SeoMeta title="Загрузка проекта" canonicalPath={`/projects/${id || ''}`} noindex />
                 <div className={style.container}>
                     <div className={style.loading}>Загрузка...</div>
                 </div>
@@ -140,6 +144,7 @@ export default function Project() {
     if (error || !project) {
         return (
             <div className={style.projectPage}>
+                <SeoMeta title="Проект не найден" canonicalPath={`/projects/${id || ''}`} noindex />
                 <div className={style.container}>
                     <div className={style.error}>{error || 'Проект не найден'}</div>
                 </div>
@@ -163,9 +168,29 @@ export default function Project() {
     // - пользователь НЕ владелец
     // - пользователь НЕ участник
     const canApply = project.status === 'open' && isAuthenticated && !isOwner && !isTeamMember;
+    const canonicalPath = routePaths.projectDetails(id);
+    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+    const structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: project.title,
+        description: project.description || 'Открытый проект на платформе TeamUp',
+        url: new URL(canonicalPath, siteUrl).toString(),
+        inLanguage: 'ru-RU',
+        datePublished: project.created_at,
+        dateModified: project.updated_at,
+        keywords: project.tags,
+    };
 
     return (
         <div className={style.projectPage}>
+            <SeoMeta
+                title={project.title}
+                description={(project.description || 'Открытый проект на платформе TeamUp').slice(0, 160)}
+                canonicalPath={canonicalPath}
+                ogType="article"
+            />
+            <StructuredData data={structuredData} />
             <div className={style.container}>
                 {/* Информация о проекте */}
                 <div className={style.projectCard}>
@@ -192,7 +217,7 @@ export default function Project() {
                     {isOwner ? (
                         <button
                             className={style.viewApplicationsButton}
-                            onClick={() => navigate(`/project/${id}/responses`)}
+                            onClick={() => navigate(routePaths.projectResponses(id))}
                         >
                             Посмотреть заявки
                             {applicationsCount > 0 && (
@@ -219,8 +244,12 @@ export default function Project() {
                                     {member.avatar_url ? (
                                         <img
                                             src={member.avatar_url}
-                                            alt={member.full_name}
+                                            alt={`Аватар участника: ${member.full_name}`}
                                             className={style.teamAvatar}
+                                            width="64"
+                                            height="64"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     ) : (
                                         <div className={style.teamAvatarPlaceholder}>
@@ -230,7 +259,7 @@ export default function Project() {
                                     <div className={style.teamInfo}>
                                         <h3 className={style.teamName}>
                                             {(user?.user_type || '').toLowerCase() === 'admin' ? (
-                                                <Link to={`/user/${member.user_id}`} className={style.teamMemberLink}>
+                                                <Link to={routePaths.userProfile(member.user_id)} className={style.teamMemberLink}>
                                                     {member.full_name}
                                                 </Link>
                                             ) : (
@@ -242,7 +271,7 @@ export default function Project() {
                                         </h3>
                                         <p className={style.teamRole}>{member.roles?.join(', ') || 'Участник'}</p>
                                         {(user?.user_type || '').toLowerCase() === 'admin' && (
-                                            <Link to={`/user/${member.user_id}`} className={style.changeTypeLink}>
+                                            <Link to={routePaths.userProfile(member.user_id)} className={style.changeTypeLink}>
                                                 Сменить тип
                                             </Link>
                                         )}

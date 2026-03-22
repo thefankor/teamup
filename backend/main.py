@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 import redis.asyncio as redis
 import uvicorn
 from fastapi import FastAPI
+from src.api.seo import router as seo_router
 from src.api import router
 from src.config import settings
 from src.core.db.redis_cache import RedisCache, redis_cache, set_cache
@@ -44,6 +45,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(seo_router)
 app.include_router(router)
 
 if __name__ == "__main__":

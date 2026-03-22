@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { projectsAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { ROUTES, routePaths } from '../../app/routes';
 import style from './AddProject.module.scss';
 
 export default function AddProject() {
@@ -60,7 +62,7 @@ export default function AddProject() {
         e.preventDefault();
         
         if (!isAuthenticated) {
-            navigate('/login');
+            navigate(ROUTES.login);
             return;
         }
 
@@ -90,7 +92,7 @@ export default function AddProject() {
             };
 
             const project = await projectsAPI.create(projectData);
-            navigate(`/project/${project.id}`);
+            navigate(routePaths.projectDetails(project.id));
         } catch (err) {
             setError(err.message || 'Ошибка создания проекта');
             console.error('Error creating project:', err);
@@ -111,6 +113,12 @@ export default function AddProject() {
 
     return (
         <div className={style.addProjectPage}>
+            <SeoMeta
+                title="Создать проект"
+                description="Создание нового проекта и позиций для поиска участников."
+                canonicalPath={ROUTES.createProject}
+                noindex
+            />
             <div className={style.container}>
                 <h1 className={style.title}>Создать проект</h1>
                 
@@ -205,7 +213,7 @@ export default function AddProject() {
                         <button
                             type="button"
                             className={style.cancelButton}
-                            onClick={() => navigate('/my_projects')}
+                            onClick={() => navigate(ROUTES.myProjects)}
                         >
                             Отмена
                         </button>

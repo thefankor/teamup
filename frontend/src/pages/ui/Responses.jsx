@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { projectsAPI, userAPI } from '../../services/api';
+import { projectsAPI } from '../../services/api';
+import { SeoMeta } from '../../components/seo/SeoMeta';
+import { ROUTES, routePaths } from '../../app/routes';
 import style from './Responses.module.scss';
 
 export default function Responses() {
@@ -21,7 +23,7 @@ export default function Responses() {
     useEffect(() => {
         const loadData = async () => {
             if (!isAuthenticated || !id) {
-                navigate('/login');
+                navigate(ROUTES.login);
                 return;
             }
 
@@ -166,9 +168,15 @@ export default function Responses() {
 
     return (
         <div className={style.responsesPage}>
+            <SeoMeta
+                title="Заявки на проект"
+                description="Управление откликами на ваш проект."
+                canonicalPath={routePaths.projectResponses(id)}
+                noindex
+            />
             <div className={style.container}>
                 <div className={style.header}>
-                    <Link to={`/project/${id}`} className={style.backLink}>
+                    <Link to={routePaths.projectDetails(id)} className={style.backLink}>
                         ← Назад к проекту
                     </Link>
                     <h1 className={style.title}>Заявки на проект: {project.title}</h1>
@@ -219,7 +227,11 @@ export default function Responses() {
                                             {applicantProfiles[application.applicant_id]?.avatar_url ? (
                                                 <img
                                                     src={applicantProfiles[application.applicant_id].avatar_url}
-                                                    alt="Avatar"
+                                                    alt="Аватар кандидата"
+                                                    width="48"
+                                                    height="48"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                             ) : (
                                                 <div className={style.avatarPlaceholder}>
