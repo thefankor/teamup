@@ -342,7 +342,9 @@ class ProjectService:
         project = await self._get_project_with_relations(project_id)
 
         if project.owner_id != user_id:
-            raise ForbiddenException(detail="Нет доступа к изменению статуса этого проекта")
+            raise ForbiddenException(
+                detail="Нет доступа к изменению статуса этого проекта"
+            )
 
         is_open = self._schema_status_to_model(status)
         await self._store.project.update(

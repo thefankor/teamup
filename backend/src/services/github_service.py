@@ -28,7 +28,9 @@ class GithubService:
             headers["Authorization"] = f"Bearer {settings.GITHUB_TOKEN}"
         return headers
 
-    async def _get(self, path: str, params: dict[str, str | int] | None = None) -> dict | list:
+    async def _get(
+        self, path: str, params: dict[str, str | int] | None = None
+    ) -> dict | list:
         response = None
 
         for attempt in range(1, self.MAX_RETRIES + 1):
@@ -55,15 +57,23 @@ class GithubService:
                 await asyncio.sleep(0.3 * attempt)
                 continue
 
-            if response.status_code in {
-                status.HTTP_429_TOO_MANY_REQUESTS,
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                status.HTTP_502_BAD_GATEWAY,
-                status.HTTP_503_SERVICE_UNAVAILABLE,
-                status.HTTP_504_GATEWAY_TIMEOUT,
-            } and attempt < self.MAX_RETRIES:
+            if (
+                response.status_code
+                in {
+                    status.HTTP_429_TOO_MANY_REQUESTS,
+                    status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    status.HTTP_502_BAD_GATEWAY,
+                    status.HTTP_503_SERVICE_UNAVAILABLE,
+                    status.HTTP_504_GATEWAY_TIMEOUT,
+                }
+                and attempt < self.MAX_RETRIES
+            ):
                 retry_after = response.headers.get("Retry-After")
-                delay = float(retry_after) if retry_after and retry_after.isdigit() else 0.3 * attempt
+                delay = (
+                    float(retry_after)
+                    if retry_after and retry_after.isdigit()
+                    else 0.3 * attempt
+                )
                 await asyncio.sleep(delay)
                 continue
 
@@ -143,4 +153,6 @@ class GithubService:
                 "type": "owner",
             },
         )
-        return self._normalize_repositories(username=username, repositories=repositories)
+        return self._normalize_repositories(
+            username=username, repositories=repositories
+        )

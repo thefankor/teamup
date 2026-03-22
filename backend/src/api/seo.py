@@ -21,7 +21,9 @@ def _absolute_url(base_url: str, path: str) -> str:
     return urljoin(normalized_base, normalized_path)
 
 
-def _xml_url_entry(loc: str, lastmod: str | None = None, priority: str | None = None) -> str:
+def _xml_url_entry(
+    loc: str, lastmod: str | None = None, priority: str | None = None
+) -> str:
     parts = [f"<loc>{escape(loc)}</loc>"]
     if lastmod:
         parts.append(f"<lastmod>{escape(lastmod)}</lastmod>")
