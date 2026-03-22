@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { userAPI } from '../../services/api';
 import { SeoMeta } from '../../components/seo/SeoMeta';
 import { ROUTES, routePaths } from '../../app/routes';
+import { GithubProfileCard } from '../../components/profile/GithubProfileCard';
 import style from './Profile.module.scss';
 
 export default function UserProfile() {
@@ -231,6 +232,7 @@ export default function UserProfile() {
                             <span className={style.contactValue}>{p.contacts.email || '—'}</span>
                         </div>
                     </div>
+                    <GithubProfileCard username={p.contacts.github_username} />
                 </div>
 
                 <div className={style.card}>

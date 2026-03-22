@@ -573,6 +573,24 @@
     &:hover {
         background-color: #2563eb;
     }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.65;
+        background-color: #93c5fd;
+    }
+}
+
+.modalFieldHint {
+    margin: -12px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.modalFieldError {
+    margin: -12px 0 0;
+    font-size: 13px;
+    color: #dc2626;
 }
 
 .educationEditItem {

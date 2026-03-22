@@ -37,6 +37,33 @@ export interface UserProfile {
     projects?: unknown[];
 }
 
+export interface GithubUserProfile {
+    login: string;
+    avatar_url: string;
+    profile_url: string;
+    public_repos: number;
+    followers: number;
+    following: number;
+    created_at: string;
+    api_url: string;
+}
+
+export interface GithubRepository {
+    name: string;
+    html_url: string;
+    description?: string | null;
+    stargazers_count: number;
+    watchers_count: number;
+    forks_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface GithubRepositoriesResponse {
+    user_login: string;
+    items: GithubRepository[];
+}
+
 interface UserAvatarUploadResponse {
     upload_url: string;
     object_key: string;
@@ -564,6 +591,21 @@ export const projectsAPI = {
         const result = await client.post(`/projects/${projectId}/applications/${applicationId}/decision`, data);
         clearProjectsCache();
         return result;
+    },
+};
+
+export const githubAPI = {
+    getUserProfile: async (username: string) => {
+        const client = new ApiClient();
+        return client.get<GithubUserProfile>(`/github/users/${encodeURIComponent(username)}`);
+    },
+
+    getTopRepos: async (username: string, limit = 3) => {
+        const client = new ApiClient();
+        const query = new URLSearchParams({ limit: String(limit) }).toString();
+        return client.get<GithubRepositoriesResponse>(
+            `/github/users/${encodeURIComponent(username)}/top-repos?${query}`,
+        );
     },
 };
 
