@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { projectsAPI } from '../../services/api';
 import { SeoMeta } from '../../components/seo/SeoMeta';
+import { StructuredData } from '../../components/seo/StructuredData';
 import { ROUTES, routePaths } from '../../app/routes';
 import style from './Project.module.scss';
 
@@ -167,15 +168,29 @@ export default function Project() {
     // - пользователь НЕ владелец
     // - пользователь НЕ участник
     const canApply = project.status === 'open' && isAuthenticated && !isOwner && !isTeamMember;
+    const canonicalPath = routePaths.projectDetails(id);
+    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+    const structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: project.title,
+        description: project.description || 'Открытый проект на платформе TeamUp',
+        url: new URL(canonicalPath, siteUrl).toString(),
+        inLanguage: 'ru-RU',
+        datePublished: project.created_at,
+        dateModified: project.updated_at,
+        keywords: project.tags,
+    };
 
     return (
         <div className={style.projectPage}>
             <SeoMeta
                 title={project.title}
                 description={(project.description || 'Открытый проект на платформе TeamUp').slice(0, 160)}
-                canonicalPath={routePaths.projectDetails(id)}
+                canonicalPath={canonicalPath}
                 ogType="article"
             />
+            <StructuredData data={structuredData} />
             <div className={style.container}>
                 {/* Информация о проекте */}
                 <div className={style.projectCard}>

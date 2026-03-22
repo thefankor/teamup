@@ -2,6 +2,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    PUBLIC_SITE_URL: str = "http://localhost:3000"
+    PUBLIC_API_URL: str = "http://localhost:8000"
+
     POSTGRES_HOST: str
     POSTGRES_DB: str
     POSTGRES_PORT: str = 5432
