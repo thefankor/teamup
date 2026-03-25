@@ -1,20 +1,12 @@
-from unittest.mock import AsyncMock
-
 import pytest
 from fastapi import status
-from src.schemas.auth import TokenInfo
-from src.services.auth.auth_service import AuthService
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_login_endpoint_normalizes_email_and_returns_empty_payload(client):
-    service = AsyncMock(spec=AuthService)
-
-    from main import app
-
-    app.dependency_overrides[AuthService] = lambda: service
-
+async def test_login_endpoint_normalizes_email_and_stores_code(
+    client, confirm_code_service
+):
     response = await client.post(
         "/api/v1/auth/login",
         json={"email": "  USER@Example.COM "},
@@ -22,21 +14,15 @@ async def test_login_endpoint_normalizes_email_and_returns_empty_payload(client)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {}
-    service.send_confirm_code.assert_awaited_once_with(email="user@example.com")
+    assert "user@example.com" in confirm_code_service.codes
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_verify_endpoint_returns_token_structure(client):
-    service = AsyncMock(spec=AuthService)
-    service.verify_code.return_value = TokenInfo(
-        access_token="access-token",
-        refresh_token="refresh-token",
-    )
-
-    from main import app
-
-    app.dependency_overrides[AuthService] = lambda: service
+async def test_verify_endpoint_returns_tokens_for_saved_code(
+    client, confirm_code_service
+):
+    confirm_code_service.codes["user@example.com"] = "12345"
 
     response = await client.post(
         "/api/v1/auth/verify",
@@ -44,10 +30,9 @@ async def test_verify_endpoint_returns_token_structure(client):
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {
-        "access_token": "access-token",
-        "refresh_token": "refresh-token",
-    }
+    body = response.json()
+    assert body["access_token"]
+    assert body["refresh_token"]
 
 
 @pytest.mark.integration

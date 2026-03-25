@@ -361,6 +361,22 @@ class ProjectService:
         if project.owner_id != user_id:
             raise ForbiddenException(detail="Нет доступа к удалению этого проекта")
 
+        applications = await self._store.project_application.find_all(
+            project_id=project_id
+        )
+        for application in applications:
+            await self._store.project_application.delete(model_id=application.id)
+
+        participants = await self._store.project_participant.find_all(
+            project_id=project_id
+        )
+        for participant in participants:
+            await self._store.project_participant.delete(model_id=participant.id)
+
+        positions = await self._store.project_position.find_all(project_id=project_id)
+        for position in positions:
+            await self._store.project_position.delete(model_id=position.id)
+
         await self._store.project.delete(model_id=project_id)
 
     async def submit_application(

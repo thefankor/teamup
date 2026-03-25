@@ -1,72 +1,35 @@
-from uuid import uuid4
-
 import pytest
 from fastapi import status
-from src.core import dependencies as deps
-from src.models.enums import UserType
-from src.services.user.user_service import UserService
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_get_profile_returns_structured_payload(client):
-    user_id = uuid4()
+async def test_get_profile_returns_structured_payload(
+    client, seeded_users, auth_token_factory
+):
+    tokens = await auth_token_factory(seeded_users.owner.id)
 
-    class StubUserService:
-        async def get_profile(self, user_id):
-            return {
-                "id": str(user_id),
-                "user_type": "USER",
-                "first_name": "Sergey",
-                "last_name": "Vozzin",
-                "middle_name": None,
-                "avatar_url": None,
-                "position": "Backend developer",
-                "about": "Builds APIs",
-                "looking_for_projects": True,
-                "tags": ["python"],
-                "skills": ["fastapi"],
-                "contact_info": {
-                    "phone": None,
-                    "email": "sergey@example.com",
-                    "github_username": None,
-                    "vk_username": None,
-                    "tg_username": None,
-                    "whatsapp_username": None,
-                },
-                "education": [],
-                "projects": [],
-            }
-
-    from main import app
-
-    app.dependency_overrides[deps.get_current_user_entity] = lambda: type(
-        "User", (), {"id": user_id, "user_type": UserType.USER}
-    )()
-    app.dependency_overrides[UserService] = lambda: StubUserService()
-
-    response = await client.get("/api/v1/user")
+    response = await client.get(
+        "/api/v1/user",
+        headers={"Authorization": f"Bearer {tokens.access_token}"},
+    )
 
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
-    assert body["id"] == str(user_id)
-    assert body["contact_info"]["email"] == "sergey@example.com"
+    assert body["id"] == str(seeded_users.owner.id)
+    assert body["contact_info"]["email"] == "owner@example.com"
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_put_tags_rejects_duplicate_values_case_insensitively(client):
-    user_id = uuid4()
-
-    from main import app
-
-    app.dependency_overrides[deps.get_current_user_entity] = lambda: type(
-        "User", (), {"id": user_id, "user_type": UserType.USER}
-    )()
-    app.dependency_overrides[UserService] = lambda: UserService
+async def test_put_tags_rejects_duplicate_values_case_insensitively(
+    client, seeded_users, auth_token_factory
+):
+    tokens = await auth_token_factory(seeded_users.owner.id)
 
     response = await client.put(
         "/api/v1/user/tags",
+        headers={"Authorization": f"Bearer {tokens.access_token}"},
         json={"tags": ["Python", "python"]},
     )
 
@@ -75,46 +38,36 @@ async def test_put_tags_rejects_duplicate_values_case_insensitively(client):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_get_profile_by_id_forbidden_for_regular_user(client):
-    target_user_id = uuid4()
+async def test_get_profile_by_id_forbidden_for_regular_user(
+    client, seeded_users, auth_token_factory
+):
+    tokens = await auth_token_factory(seeded_users.owner.id)
 
-    from main import app
-
-    app.dependency_overrides[deps.get_current_user_entity] = lambda: type(
-        "User", (), {"id": uuid4(), "user_type": UserType.USER}
-    )()
-
-    response = await client.get(f"/api/v1/user/{target_user_id}")
+    response = await client.get(
+        f"/api/v1/user/{seeded_users.admin.id}",
+        headers={"Authorization": f"Bearer {tokens.access_token}"},
+    )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_avatar_upload_url_endpoint_returns_expected_shape(client):
-    user_id = uuid4()
-
-    class StubUserService:
-        async def generate_presigned_upload_url(self, user_id, content_type):
-            assert content_type == "image/png"
-            return {
-                "upload_url": "https://s3.example/upload",
-                "object_key": f"users/{user_id}/avatar/file.png",
-            }
-
-    from main import app
-
-    app.dependency_overrides[deps.get_current_user_entity] = lambda: type(
-        "User", (), {"id": user_id, "user_type": UserType.USER}
-    )()
-    app.dependency_overrides[UserService] = lambda: StubUserService()
+async def test_avatar_upload_url_endpoint_returns_expected_shape(
+    client, seeded_users, auth_token_factory
+):
+    tokens = await auth_token_factory(seeded_users.owner.id)
 
     response = await client.post(
         "/api/v1/user/avatar/upload-url",
         params={"content_type": "image/png"},
+        headers={"Authorization": f"Bearer {tokens.access_token}"},
     )
 
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
-    assert body["upload_url"] == "https://s3.example/upload"
-    assert body["object_key"].endswith("/avatar/file.png")
+    assert (
+        body["upload_url"]
+        == f"https://storage.test/upload/users/{seeded_users.owner.id}/avatar/test-avatar.png"
+    )
+    assert body["object_key"].endswith("/avatar/test-avatar.png")

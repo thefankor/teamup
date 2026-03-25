@@ -2,42 +2,19 @@ from uuid import uuid4
 
 import pytest
 from fastapi import status
-from src.core import dependencies as deps
-from src.models.enums import UserType
-from src.schemas.project import ProjectStatus
-from src.services.project.project_service import ProjectService
+from src.models import ProjectPosition
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_create_project_returns_201_and_project_payload(client):
-    owner_id = uuid4()
-
-    class StubProjectService:
-        async def create_project(self, user_id, data):
-            assert user_id == owner_id
-            return {
-                "id": str(uuid4()),
-                "owner_id": str(owner_id),
-                "title": data.title,
-                "description": data.description,
-                "tags": data.tags,
-                "status": ProjectStatus.open,
-                "created_at": "2026-03-22T10:00:00Z",
-                "updated_at": "2026-03-22T10:00:00Z",
-                "team": [],
-                "positions": [],
-            }
-
-    from main import app
-
-    app.dependency_overrides[deps.get_current_user_entity] = lambda: type(
-        "User", (), {"id": owner_id, "user_type": UserType.USER}
-    )()
-    app.dependency_overrides[ProjectService] = lambda: StubProjectService()
+async def test_create_project_returns_201_and_project_payload(
+    client, seeded_users, auth_token_factory
+):
+    owner_tokens = await auth_token_factory(seeded_users.owner.id)
 
     response = await client.post(
         "/api/v1/projects",
+        headers={"Authorization": f"Bearer {owner_tokens.access_token}"},
         json={
             "title": "TeamUp API",
             "description": "Backend service",
@@ -50,7 +27,7 @@ async def test_create_project_returns_201_and_project_payload(client):
     body = response.json()
     assert body["title"] == "TeamUp API"
     assert body["status"] == "open"
-    assert body["positions"] == []
+    assert len(body["positions"]) == 1
 
 
 @pytest.mark.integration
@@ -74,37 +51,36 @@ async def test_get_project_validates_uuid(client):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_submit_application_returns_created_payload(client):
-    current_user_id = uuid4()
-    project_id = uuid4()
-    application_id = uuid4()
-    position_id = uuid4()
+async def test_submit_application_returns_created_payload(
+    client, seeded_users, auth_token_factory, db_session
+):
+    owner_tokens = await auth_token_factory(seeded_users.owner.id)
+    applicant_tokens = await auth_token_factory(seeded_users.intruder.id)
 
-    class StubProjectService:
-        async def submit_application(self, project_id, user_id, data):
-            assert user_id == current_user_id
-            assert data.position_ids == [position_id]
-            return {
-                "id": str(application_id),
-                "project_id": str(project_id),
-                "applicant_id": str(user_id),
-                "position_ids": [str(position_id)],
-                "message": data.message,
-                "status": "pending",
-                "created_at": "2026-03-22T10:00:00Z",
-                "decided_at": None,
-                "decided_by": None,
-            }
+    create_project = await client.post(
+        "/api/v1/projects",
+        headers={"Authorization": f"Bearer {owner_tokens.access_token}"},
+        json={
+            "title": "TeamUp API",
+            "description": "Backend service",
+            "tags": ["fastapi"],
+            "positions": [{"role": "Backend", "level": "middle", "tags": ["python"]}],
+        },
+    )
+    project_id = create_project.json()["id"]
 
-    from main import app
-
-    app.dependency_overrides[deps.get_current_user_entity] = lambda: type(
-        "User", (), {"id": current_user_id, "user_type": UserType.USER}
-    )()
-    app.dependency_overrides[ProjectService] = lambda: StubProjectService()
+    position = (
+        await db_session.execute(
+            ProjectPosition.__table__.select().where(
+                ProjectPosition.project_id == project_id
+            )
+        )
+    ).first()
+    position_id = position.id
 
     response = await client.post(
         f"/api/v1/projects/{project_id}/applications",
+        headers={"Authorization": f"Bearer {applicant_tokens.access_token}"},
         json={"position_ids": [str(position_id)], "message": "Can I join?"},
     )
 
