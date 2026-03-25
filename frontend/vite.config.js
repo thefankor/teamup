@@ -8,4 +8,25 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    globals: false,
+    css: true,
+    clearMocks: true,
+    restoreMocks: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      reportsDirectory: './coverage',
+      thresholds: {
+        lines: 15,
+        functions: 30,
+        branches: 20,
+        statements: 15,
+      },
+      include: ['src/**/*.{js,jsx,ts,tsx}'],
+      exclude: ['src/test/**'],
+    },
+  },
 })

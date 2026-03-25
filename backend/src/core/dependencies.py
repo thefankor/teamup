@@ -5,9 +5,9 @@ import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.config import settings
 from src.core.auth import TokenService
 from src.core.db.database import get_async_db
-from src.config import settings
 from src.core.exceptions import ForbiddenException
 from src.core.permissions import has_permission
 from src.crud import Store

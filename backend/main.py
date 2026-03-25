@@ -3,8 +3,8 @@ from contextlib import asynccontextmanager
 import redis.asyncio as redis
 import uvicorn
 from fastapi import FastAPI
-from src.api.seo import router as seo_router
 from src.api import router
+from src.api.seo import router as seo_router
 from src.config import settings
 from src.core.db.redis_cache import RedisCache, redis_cache, set_cache
 from src.utils.s3_service import S3Service
