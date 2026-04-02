@@ -1,12 +1,14 @@
 node_modules
 npm-debug.log
 dist
+coverage
+.vite
 .git
 .gitignore
 README.md
 .env
 .env.local
+.env.*
 .DS_Store
-
 
 

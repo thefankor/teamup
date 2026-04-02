@@ -28,3 +28,20 @@ jobs:
 
       - name: Run ruff check
         run: make ruff_check
+
+  tests:
+    name: Backend And Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run backend tests
+        run: docker compose -f compose-test.yml run --build --rm backend-tests
+
+      - name: Run frontend tests
+        run: docker compose -f compose-test.yml run --build --rm frontend-tests
+
+      - name: Cleanup test containers
+        if: always()
+        run: docker compose -f compose-test.yml down -v --remove-orphans
