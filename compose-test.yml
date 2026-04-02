@@ -32,6 +32,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: build
     working_dir: /app
     env_file:
       - ./frontend/.env.test
