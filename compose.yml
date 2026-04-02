@@ -12,7 +12,7 @@ services:
     volumes:
       - teamup_db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - teamup-network
     healthcheck:
@@ -37,7 +37,7 @@ services:
       PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:3000}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
     ports:
-      - "8000:8000"
+      - "8888:8000"
     networks:
       - teamup-network
     depends_on:
@@ -58,7 +58,7 @@ services:
     container_name: teamup-redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - teamup_redis_data:/data
     env_file:
@@ -120,7 +120,7 @@ services:
         VITE_API_BASE_URL: /api/v1
     restart: always
     ports:
-      - "3000:80"
+      - "3333:80"
     networks:
       - teamup-network
     depends_on:
