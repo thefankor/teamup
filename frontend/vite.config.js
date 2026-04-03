@@ -12,6 +12,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.js',
     globals: false,
+    exclude: ['e2e/**', 'node_modules/**'],
     css: true,
     clearMocks: true,
     restoreMocks: true,
